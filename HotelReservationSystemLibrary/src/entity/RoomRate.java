@@ -1,7 +1,9 @@
 package entity;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -10,6 +12,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
 import util.enumerations.RateTypeEnum;
 
 @Entity
@@ -21,20 +27,32 @@ public class RoomRate implements Serializable {
     private Long roomRateId;
     
     @Enumerated(EnumType.STRING)
+    @NotNull
     private RateTypeEnum rateType;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private double pricePerNight;
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date startDate;
+    
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date endDate;
+    
+    @Column(nullable = false, precision = 6, scale = 2)
+    @NotNull
+    @DecimalMin("0.00")
+    @Digits(integer = 4, fraction = 2)
+    private BigDecimal pricePerNight;
 
     @ManyToOne
-    @JoinColumn(name = "roomTypeID")
+    @JoinColumn(name = "roomTypeId")
+    @NotNull
     private RoomType roomType;
 
     public RoomRate() {
     }
 
-    public RoomRate(Long roomRateId, RateTypeEnum rateType, LocalDate startDate, LocalDate endDate, double pricePerNight, RoomType roomType) {
+    public RoomRate(Long roomRateId, RateTypeEnum rateType, Date startDate, Date endDate, BigDecimal pricePerNight, RoomType roomType) {
         this.roomRateId = roomRateId;
         this.rateType = rateType;
         this.startDate = startDate;
@@ -84,27 +102,27 @@ public class RoomRate implements Serializable {
         this.rateType = rateType;
     }
 
-    public LocalDate getStartDate() {
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDate getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDate endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 
-    public double getPricePerNight() {
+    public BigDecimal getPricePerNight() {
         return pricePerNight;
     }
 
-    public void setPricePerNight(double pricePerNight) {
+    public void setPricePerNight(BigDecimal pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
 

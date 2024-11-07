@@ -1,13 +1,19 @@
 package entity;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.util.Date;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class StayDetails implements Serializable {
@@ -15,53 +21,62 @@ public class StayDetails implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long stayId;
+    private Long stayDetailsId;
     
-    private LocalDate stayDate;
-    private double pricePerDay;
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date stayDate;
+    
+    @Column(nullable = false, precision = 6, scale = 2)
+    @NotNull
+    @DecimalMin("0.00")
+    @Digits(integer = 4, fraction = 2)
+    private BigDecimal pricePerDay;
 
-    @ManyToOne
-    @JoinColumn(name = "reservationId")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "reservationId", nullable = false)
+    @NotNull
     private Reservation reservation;
 
-    @ManyToOne
-    @JoinColumn(name = "rateId")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "rateId", nullable = false)
+    @NotNull
     private RoomRate roomRate;
 
     public StayDetails() {
     }
 
-    public StayDetails(Long stayId, LocalDate stayDate, double pricePerDay, Reservation reservation, RoomRate roomRate) {
-        this.stayId = stayId;
+    public StayDetails(Long stayId, Date stayDate, BigDecimal pricePerDay, Reservation reservation, RoomRate roomRate) {
+        this.stayDetailsId = stayId;
         this.stayDate = stayDate;
         this.pricePerDay = pricePerDay;
         this.reservation = reservation;
         this.roomRate = roomRate;
     }
 
-    public Long getStayId() {
-        return stayId;
+    public Long getStayDetailsId() {
+        return stayDetailsId;
     }
 
-    public void setStayId(Long stayId) {
-        this.stayId = stayId;
+    public void setStayDetailsId(Long stayDetailsId) {
+        this.stayDetailsId = stayDetailsId;
     }
 
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (stayId != null ? stayId.hashCode() : 0);
+        hash += (stayDetailsId != null ? stayDetailsId.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the stayId fields are not set
+        // TODO: Warning - this method won't work in the case the stayDetailsId fields are not set
         if (!(object instanceof StayDetails)) {
             return false;
         }
         StayDetails other = (StayDetails) object;
-        if ((this.stayId == null && other.stayId != null) || (this.stayId != null && !this.stayId.equals(other.stayId))) {
+        if ((this.stayDetailsId == null && other.stayDetailsId != null) || (this.stayDetailsId != null && !this.stayDetailsId.equals(other.stayDetailsId))) {
             return false;
         }
         return true;
@@ -69,22 +84,22 @@ public class StayDetails implements Serializable {
 
     @Override
     public String toString() {
-        return "entity.StayDetails[ id=" + stayId + " ]";
+        return "entity.StayDetails[ id=" + stayDetailsId + " ]";
     }
 
-    public LocalDate getStayDate() {
+    public Date getStayDate() {
         return stayDate;
     }
 
-    public void setStayDate(LocalDate stayDate) {
+    public void setStayDate(Date stayDate) {
         this.stayDate = stayDate;
     }
 
-    public double getPricePerDay() {
+    public BigDecimal getPricePerDay() {
         return pricePerDay;
     }
 
-    public void setPricePerDay(double pricePerDay) {
+    public void setPricePerDay(BigDecimal pricePerDay) {
         this.pricePerDay = pricePerDay;
     }
 

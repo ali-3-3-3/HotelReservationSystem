@@ -1,12 +1,14 @@
 package entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import util.enumerations.EmployeeRoleEnum;
 
 @Entity
@@ -17,12 +19,24 @@ public class Employee implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long employeeId;
     
+    @Column (length = 64, nullable = false)
+    @NotNull
     private String name;
+    
+    @Column (length = 64, nullable = false)
+    @NotNull
     private String position;
+    
+    @Column (length = 64, nullable = false, unique = true)
+    @NotNull
     private String email;
+    
+    @Column (length = 8, nullable = false, unique = true)
+    @NotNull
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private EmployeeRoleEnum role;
 
     public Employee() {

@@ -2,6 +2,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -9,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
 import util.enumerations.RoomTypeEnum;
 
 @Entity
@@ -20,9 +23,15 @@ public class RoomType implements Serializable {
     private Long roomTypeId;
     
     @Enumerated(EnumType.STRING)
+    @NotNull
     private RoomTypeEnum typeName;
-
+    
+    @Digits(integer = 2, fraction = 0)
+    @NotNull
     private int maxOccupancy;
+    
+    @Column(length = 256, nullable = false)
+    @NotNull
     private String description;
     
     @OneToMany(mappedBy = "roomType")

@@ -1,10 +1,12 @@
 package entity;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class Partner implements Serializable {
@@ -13,6 +15,10 @@ public class Partner implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long partnerId;
+    
+    @Column (length = 64, nullable = false)
+    @NotNull
+    private String systemName;
 
     public Long getPartnerId() {
         return partnerId;
@@ -21,8 +27,6 @@ public class Partner implements Serializable {
     public void setPartnerId(Long partnerId) {
         this.partnerId = partnerId;
     }
-    
-    private String systemName;
 
     public Partner() {
     }

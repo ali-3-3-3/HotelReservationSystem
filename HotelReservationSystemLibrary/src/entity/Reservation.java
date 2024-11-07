@@ -1,7 +1,7 @@
 package entity;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -12,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.validation.constraints.NotNull;
 import util.enumerations.RoomStatusEnum;
 
 @Entity
@@ -22,54 +24,61 @@ public class Reservation implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationId;
     
-    private LocalDate reservationDate;
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date reservationDate;
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date checkInDate;
+    @Temporal(javax.persistence.TemporalType.DATE)
+    @NotNull
+    private Date checkOutDate;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private RoomStatusEnum status;
 
-    @ManyToOne
-    @JoinColumn(name = "customerId")
-    private Customer customer;
+    @ManyToOne (optional = false)
+    @JoinColumn (name = "guestId", nullable = false)
+    @NotNull
+    private Guest guest;
 
-    @ManyToOne
-    @JoinColumn(name = "partnerId")
+    @ManyToOne (optional = true)
+    @JoinColumn(name = "partnerId", nullable = true)
     private Partner partner;
 
-    @ManyToOne
-    @JoinColumn(name = "roomTypeId")
+    @ManyToOne (optional = true)
+    @JoinColumn(name = "roomTypeId", nullable = true)
     private RoomType roomType;
-    
-    @ManyToOne
-    @JoinColumn(name="allocationId")
-    private AllocationProcess allocationProcess;
-
+   
     @OneToMany(mappedBy = "reservation")
     private List<StayDetails> stayDetails;
+    
+    @OneToMany(mappedBy = "reservation")
+    private RoomAllocation roomAllocation;
     
     public Reservation() {
     }
 
-    public Reservation(Long reservationId, LocalDate reservationDate, LocalDate checkInDate, LocalDate checkOutDate, RoomStatusEnum status, Customer customer, Partner partner, RoomType roomType, List<StayDetails> stayDetails) {
+    public Reservation(Long reservationId, Date reservationDate, Date checkInDate, Date checkOutDate, RoomStatusEnum status, Guest customer, Partner partner, RoomType roomType, List<StayDetails> stayDetails) {
         this.reservationId = reservationId;
         this.reservationDate = reservationDate;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.status = status;
-        this.customer = customer;
+        this.guest = customer;
         this.partner = partner;
         this.roomType = roomType;
         this.stayDetails = stayDetails;
     }
 
-    public Reservation(Long reservationId, LocalDate reservationDate, LocalDate checkInDate, LocalDate checkOutDate, RoomStatusEnum status, Customer customer, RoomType roomType, List<StayDetails> stayDetails) {
+    public Reservation(Long reservationId, Date reservationDate, Date checkInDate, Date checkOutDate, RoomStatusEnum status, Guest customer, RoomType roomType, List<StayDetails> stayDetails) {
         this.reservationId = reservationId;
         this.reservationDate = reservationDate;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.status = status;
-        this.customer = customer;
+        this.guest = customer;
         this.roomType = roomType;
         this.stayDetails = stayDetails;
     }
@@ -107,27 +116,27 @@ public class Reservation implements Serializable {
         return "entity.Reservation[ id=" + reservationId + " ]";
     }
     
-    public LocalDate getReservationDate() {
+    public Date getReservationDate() {
         return reservationDate;
     }
 
-    public void setReservationDate(LocalDate reservationDate) {
+    public void setReservationDate(Date reservationDate) {
         this.reservationDate = reservationDate;
     }
 
-    public LocalDate getCheckInDate() {
+    public Date getCheckInDate() {
         return checkInDate;
     }
 
-    public void setCheckInDate(LocalDate checkInDate) {
+    public void setCheckInDate(Date checkInDate) {
         this.checkInDate = checkInDate;
     }
 
-    public LocalDate getCheckOutDate() {
+    public Date getCheckOutDate() {
         return checkOutDate;
     }
 
-    public void setCheckOutDate(LocalDate checkOutDate) {
+    public void setCheckOutDate(Date checkOutDate) {
         this.checkOutDate = checkOutDate;
     }
 
@@ -139,12 +148,12 @@ public class Reservation implements Serializable {
         this.status = status;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public Guest getGuest() {
+        return guest;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setGuest(Guest guest) {
+        this.guest = guest;
     }
 
     public Partner getPartner() {
@@ -169,13 +178,5 @@ public class Reservation implements Serializable {
 
     public void setStayDetails(List<StayDetails> stayDetails) {
         this.stayDetails = stayDetails;
-    }
-
-    public AllocationProcess getAllocationProcess() {
-        return allocationProcess;
-    }
-
-    public void setAllocationProcess(AllocationProcess allocationProcess) {
-        this.allocationProcess = allocationProcess;
     }
 }
