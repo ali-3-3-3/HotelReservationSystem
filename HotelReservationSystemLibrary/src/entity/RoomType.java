@@ -1,11 +1,13 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -34,14 +36,24 @@ public class RoomType implements Serializable {
     @NotNull
     private String description;
     
-    @OneToMany(mappedBy = "roomType")
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
     private List<Room> rooms;
     
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    private List<Reservation> reservations;
+    
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    private List<RoomRate> roomRates;
+    
     public RoomType() {
+        this.rooms = new ArrayList<>();
+        this.reservations = new ArrayList<>();
+        this.roomRates = new ArrayList<>();
     }
 
-    public RoomType(Long roomTypeId, RoomTypeEnum typeName, int maxOccupancy, String description, List<Room> rooms) {
-        this.roomTypeId = roomTypeId;
+    public RoomType(RoomTypeEnum typeName, int maxOccupancy, String description, List<Room> rooms) {
+        this();
+        
         this.typeName = typeName;
         this.maxOccupancy = maxOccupancy;
         this.description = description;
@@ -111,6 +123,14 @@ public class RoomType implements Serializable {
 
     public void setRooms(List<Room> rooms) {
         this.rooms = rooms;
+    }
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public void setReservations(List<Reservation> reservations) {
+        this.reservations = reservations;
     }
     
 }

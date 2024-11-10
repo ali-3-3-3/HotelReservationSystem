@@ -1,13 +1,17 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import util.enumerations.EmployeeRoleEnum;
 
@@ -37,18 +41,23 @@ public class Employee implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private EmployeeRoleEnum role;
+    private EmployeeRoleEnum employeeRole;
+    
+    @OneToMany(mappedBy="employee", fetch = FetchType.LAZY)
+    private List<AllocationException> exceptions;
 
     public Employee() {
+        this.exceptions = new ArrayList<>();
     }
 
-    public Employee(Long employeeId, String name, String position, String email, String phoneNumber, EmployeeRoleEnum role) {
-        this.employeeId = employeeId;
+    public Employee(String name, String position, String email, String phoneNumber, EmployeeRoleEnum role) {
+        this();
+        
         this.name = name;
         this.position = position;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.role = role;
+        this.employeeRole = role;
     }
 
     public Long getEmployeeId() {
@@ -116,12 +125,20 @@ public class Employee implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
-    public EmployeeRoleEnum getRole() {
-        return role;
+    public EmployeeRoleEnum getEmployeeRole() {
+        return employeeRole;
     }
 
-    public void setRole(EmployeeRoleEnum role) {
-        this.role = role;
+    public void setEmployeeRole(EmployeeRoleEnum employeeRole) {
+        this.employeeRole = employeeRole;
+    }
+
+    public List<AllocationException> getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(List<AllocationException> exceptions) {
+        this.exceptions = exceptions;
     }
     
 }

@@ -4,17 +4,34 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Entity
 public class Customer extends Guest implements Serializable {
     
-    @Column (length = 32, nullable = false, unique = true)
+    private static final long serialVersionUID = 1L;
+    
+    @Column (length = 15, nullable = false, unique = true)
+    @Pattern(regexp = "^[A-Za-z0-9_]{3,15}$", message = "Username must be 3-15 characters long and contain only letters, numbers, or underscores")
     @NotNull
     private String username;
     
-    @Column (length = 32, nullable = false)
+    @Column (length = 20, nullable = false)
+    @Size(min = 8, max = 20)
     @NotNull
     private String password;
+
+    public Customer() {
+        super();
+    }
+
+    public Customer(String username, String password, String name, String email, String phoneNumber) {
+        super(name, email, phoneNumber);
+        this.username = username;
+        this.password = password;
+    }
+    
 
     public String getUsername() {
         return username;

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,21 +34,20 @@ public class StayDetails implements Serializable {
     @Digits(integer = 4, fraction = 2)
     private BigDecimal pricePerDay;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "reservationId", nullable = false)
     @NotNull
     private Reservation reservation;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "rateId", nullable = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "roomRateId", nullable = false)
     @NotNull
     private RoomRate roomRate;
 
     public StayDetails() {
     }
 
-    public StayDetails(Long stayId, Date stayDate, BigDecimal pricePerDay, Reservation reservation, RoomRate roomRate) {
-        this.stayDetailsId = stayId;
+    public StayDetails(Date stayDate, BigDecimal pricePerDay, Reservation reservation, RoomRate roomRate) {
         this.stayDate = stayDate;
         this.pricePerDay = pricePerDay;
         this.reservation = reservation;

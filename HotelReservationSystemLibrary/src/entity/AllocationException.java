@@ -5,16 +5,18 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import util.enumerations.ResolutionStatusEnum;
 
 @Entity
-public class Exception implements Serializable {
+public class AllocationException implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -29,16 +31,19 @@ public class Exception implements Serializable {
     @NotNull
     private ResolutionStatusEnum resolutionStatus;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "employeeId", nullable = false)
     @NotNull
     private Employee employee;
+    
+    @OneToOne(mappedBy = "exception", optional = false, fetch = FetchType.EAGER)
+    @NotNull
+    private RoomAllocation roomAllocation;
 
-    public Exception() {
+    public AllocationException() {
     }
 
-    public Exception(Long exceptionId, String errorDescription, ResolutionStatusEnum resolutionStatus, Employee employee) {
-        this.exceptionId = exceptionId;
+    public AllocationException(String errorDescription, ResolutionStatusEnum resolutionStatus, Employee employee) {
         this.errorDescription = errorDescription;
         this.resolutionStatus = resolutionStatus;
         this.employee = employee;
@@ -62,10 +67,10 @@ public class Exception implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the exceptionId fields are not set
-        if (!(object instanceof Exception)) {
+        if (!(object instanceof AllocationException)) {
             return false;
         }
-        Exception other = (Exception) object;
+        AllocationException other = (AllocationException) object;
         if ((this.exceptionId == null && other.exceptionId != null) || (this.exceptionId != null && !this.exceptionId.equals(other.exceptionId))) {
             return false;
         }
@@ -100,4 +105,12 @@ public class Exception implements Serializable {
     public void setEmployee(Employee employee) {
         this.employee = employee;
     } 
+
+    public RoomAllocation getRoomAllocation() {
+        return roomAllocation;
+    }
+
+    public void setRoomAllocation(RoomAllocation roomAllocation) {
+        this.roomAllocation = roomAllocation;
+    }
 }

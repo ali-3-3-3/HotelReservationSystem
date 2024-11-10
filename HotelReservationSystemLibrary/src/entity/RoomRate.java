@@ -2,16 +2,20 @@ package entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -44,21 +48,23 @@ public class RoomRate implements Serializable {
     @Digits(integer = 4, fraction = 2)
     private BigDecimal pricePerNight;
 
-    @ManyToOne
-    @JoinColumn(name = "roomTypeId")
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn (name = "roomTypeId", nullable = false)
     @NotNull
     private RoomType roomType;
+    
+    @OneToMany(mappedBy = "roomRate", fetch = FetchType.LAZY)
+    private List<StayDetails> stayDetails;
 
     public RoomRate() {
+        this.stayDetails = new ArrayList<>();
     }
 
-    public RoomRate(Long roomRateId, RateTypeEnum rateType, Date startDate, Date endDate, BigDecimal pricePerNight, RoomType roomType) {
-        this.roomRateId = roomRateId;
+    public RoomRate(RateTypeEnum rateType, Date startDate, Date endDate, BigDecimal pricePerNight, RoomType roomType) {
         this.rateType = rateType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.pricePerNight = pricePerNight;
-        this.roomType = roomType;
     }
 
     public Long getRoomRateId() {
@@ -132,6 +138,14 @@ public class RoomRate implements Serializable {
 
     public void setRoomType(RoomType roomType) {
         this.roomType = roomType;
+    }
+
+    public List<StayDetails> getStayDetails() {
+        return stayDetails;
+    }
+
+    public void setStayDetails(List<StayDetails> stayDetails) {
+        this.stayDetails = stayDetails;
     }
     
 }

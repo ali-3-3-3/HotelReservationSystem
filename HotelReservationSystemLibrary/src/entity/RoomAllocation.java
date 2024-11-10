@@ -3,15 +3,15 @@ package entity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
-import util.enumerations.RoomAllocationStatusEnum;
 
 @Entity
 public class RoomAllocation implements Serializable {
@@ -25,22 +25,30 @@ public class RoomAllocation implements Serializable {
     @NotNull
     private Date allocationDate;
     
-    @Enumerated(EnumType.STRING)
-    private RoomAllocationStatusEnum status;
+    @NotNull
+    private boolean isException;
     
-    @ManyToOne(optional = true)
+    @ManyToOne (optional = true, fetch = FetchType.EAGER)
+    @JoinColumn (name = "roomId", nullable = true)
+    @NotNull
     private Room room;
     
-    @ManyToOne(optional = false)
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn (name = "reservationId", nullable = false)
+    @NotNull
     private Reservation reservation;
+    
+    @OneToOne(mappedBy = "roomAllocation", optional = true, fetch = FetchType.EAGER)
+    private AllocationException exception;
 
     public RoomAllocation() {
+        this.isException = false;
     }
 
-    public RoomAllocation(Long allocationId, Date allocationDate, RoomAllocationStatusEnum status, Room room, Reservation reservation) {
-        this.allocationId = allocationId;
+    public RoomAllocation(Date allocationDate, Room room, Reservation reservation) {
+        this();
+        
         this.allocationDate = allocationDate;
-        this.status = status;
         this.room = room;
         this.reservation = reservation;
     }
@@ -86,14 +94,6 @@ public class RoomAllocation implements Serializable {
         this.allocationDate = allocationDate;
     }
 
-    public RoomAllocationStatusEnum getStatus() {
-        return status;
-    }
-
-    public void setStatus(RoomAllocationStatusEnum status) {
-        this.status = status;
-    }
-
     public Room getRoom() {
         return room;
     }
@@ -108,6 +108,22 @@ public class RoomAllocation implements Serializable {
 
     public void setReservation(Reservation reservation) {
         this.reservation = reservation;
+    }
+
+    public boolean isIsException() {
+        return isException;
+    }
+
+    public void setIsException(boolean isException) {
+        this.isException = isException;
+    }
+
+    public AllocationException getException() {
+        return exception;
+    }
+
+    public void setException(AllocationException exception) {
+        this.exception = exception;
     }
     
 }

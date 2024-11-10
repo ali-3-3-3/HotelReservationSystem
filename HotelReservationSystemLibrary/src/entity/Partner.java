@@ -1,11 +1,15 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -16,9 +20,12 @@ public class Partner implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long partnerId;
     
-    @Column (length = 64, nullable = false)
+    @Column (length = 64, nullable = false, unique = true)
     @NotNull
     private String systemName;
+    
+    @OneToMany(mappedBy="partner", fetch = FetchType.LAZY)
+    private List<Reservation> reservations;
 
     public Long getPartnerId() {
         return partnerId;
@@ -29,10 +36,12 @@ public class Partner implements Serializable {
     }
 
     public Partner() {
+        this.reservations = new ArrayList<>();
     }
 
-    public Partner(Long partnerId, String systemName) {
-        this.partnerId = partnerId;
+    public Partner(String systemName) {
+        this();
+        
         this.systemName = systemName;
     }
 
@@ -67,5 +76,13 @@ public class Partner implements Serializable {
 
     public void setSystemName(String systemName) {
         this.systemName = systemName;
+    }
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public void setReservations(List<Reservation> reservations) {
+        this.reservations = reservations;
     }
 }

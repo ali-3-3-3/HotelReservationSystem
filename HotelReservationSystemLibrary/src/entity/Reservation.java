@@ -1,11 +1,12 @@
 package entity;
 
 import java.io.Serializable;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,75 +15,72 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
-import util.enumerations.RoomStatusEnum;
+import javax.persistence.TemporalType;
 
 @Entity
 public class Reservation implements Serializable {
+    
+    public static final LocalTime STANDARD_CHECK_IN_TIME = LocalTime.of(14, 0);  // 2 PM
+    public static final LocalTime STANDARD_CHECK_OUT_TIME = LocalTime.of(12, 0); // 12 Noon
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationId;
     
-    @Temporal(javax.persistence.TemporalType.DATE)
+    @Temporal(TemporalType.DATE)
     @NotNull
     private Date reservationDate;
-    @Temporal(javax.persistence.TemporalType.DATE)
+    
+    @Temporal(TemporalType.DATE)
     @NotNull
     private Date checkInDate;
-    @Temporal(javax.persistence.TemporalType.DATE)
+    
+    @Temporal(TemporalType.DATE)
     @NotNull
     private Date checkOutDate;
-
-    @Enumerated(EnumType.STRING)
+    
     @NotNull
-    private RoomStatusEnum status;
+    private LocalTime checkInTime;
+    
+    @NotNull
+    private LocalTime checkOutTime;
 
-    @ManyToOne (optional = false)
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
     @JoinColumn (name = "guestId", nullable = false)
     @NotNull
     private Guest guest;
 
-    @ManyToOne (optional = true)
+    @ManyToOne (optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "partnerId", nullable = true)
     private Partner partner;
 
-    @ManyToOne (optional = true)
-    @JoinColumn(name = "roomTypeId", nullable = true)
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "roomTypeId", nullable = false)
+    @NotNull
     private RoomType roomType;
    
-    @OneToMany(mappedBy = "reservation")
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
     private List<StayDetails> stayDetails;
     
-    @OneToMany(mappedBy = "reservation")
-    private RoomAllocation roomAllocation;
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
+    private List<RoomAllocation> roomAllocations;
     
     public Reservation() {
+        this.stayDetails = new ArrayList<>();
+        this.roomAllocations = new ArrayList<>();
     }
-
-    public Reservation(Long reservationId, Date reservationDate, Date checkInDate, Date checkOutDate, RoomStatusEnum status, Guest customer, Partner partner, RoomType roomType, List<StayDetails> stayDetails) {
-        this.reservationId = reservationId;
+    
+    public Reservation(Date reservationDate, Date checkInDate, Date checkOutDate) {
+        this();
+        
         this.reservationDate = reservationDate;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
-        this.status = status;
-        this.guest = customer;
-        this.partner = partner;
-        this.roomType = roomType;
-        this.stayDetails = stayDetails;
+        this.checkInTime = STANDARD_CHECK_IN_TIME;  // Default check-in time is 2 PM
+        this.checkOutTime = STANDARD_CHECK_OUT_TIME;  // Default check-out time is 12 Noon
     }
-
-    public Reservation(Long reservationId, Date reservationDate, Date checkInDate, Date checkOutDate, RoomStatusEnum status, Guest customer, RoomType roomType, List<StayDetails> stayDetails) {
-        this.reservationId = reservationId;
-        this.reservationDate = reservationDate;
-        this.checkInDate = checkInDate;
-        this.checkOutDate = checkOutDate;
-        this.status = status;
-        this.guest = customer;
-        this.roomType = roomType;
-        this.stayDetails = stayDetails;
-    }
-
+    
     public Long getReservationId() {
         return reservationId;
     }
@@ -140,14 +138,6 @@ public class Reservation implements Serializable {
         this.checkOutDate = checkOutDate;
     }
 
-    public RoomStatusEnum getStatus() {
-        return status;
-    }
-
-    public void setStatus(RoomStatusEnum status) {
-        this.status = status;
-    }
-
     public Guest getGuest() {
         return guest;
     }
@@ -178,5 +168,29 @@ public class Reservation implements Serializable {
 
     public void setStayDetails(List<StayDetails> stayDetails) {
         this.stayDetails = stayDetails;
+    }
+
+    public List<RoomAllocation> getRoomAllocations() {
+        return roomAllocations;
+    }
+
+    public void setRoomAllocations(List<RoomAllocation> roomAllocations) {
+        this.roomAllocations = roomAllocations;
+    }
+
+    public LocalTime getCheckInTime() {
+        return checkInTime;
+    }
+
+    public void setCheckInTime(LocalTime checkInTime) {
+        this.checkInTime = checkInTime;
+    }
+
+    public LocalTime getCheckOutTime() {
+        return checkOutTime;
+    }
+
+    public void setCheckOutTime(LocalTime checkOutTime) {
+        this.checkOutTime = checkOutTime;
     }
 }
