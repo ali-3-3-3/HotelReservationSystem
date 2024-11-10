@@ -21,6 +21,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import util.enumerations.RateTypeEnum;
+import util.exceptions.RoomRateAddStayDetailException;
 
 @Entity
 public class RoomRate implements Serializable {
@@ -65,6 +66,17 @@ public class RoomRate implements Serializable {
         this.startDate = startDate;
         this.endDate = endDate;
         this.pricePerNight = pricePerNight;
+    }
+    
+    public void addStayDetails(StayDetails stayDetail) throws RoomRateAddStayDetailException {
+        if(stayDetail != null && !this.getStayDetails().contains(stayDetail))
+        {
+            this.getStayDetails().add(stayDetail);
+        }
+        else
+        {
+            throw new RoomRateAddStayDetailException("StayDetail already added to reservation");
+        }
     }
 
     public Long getRoomRateId() {

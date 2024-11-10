@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import util.exceptions.RoomAddRoomAllocationException;
 
 @Entity
 public class Room implements Serializable {
@@ -61,6 +62,17 @@ public class Room implements Serializable {
         this.roomType = roomType;
     }
 
+    
+    public void addRoomAllocation(RoomAllocation roomAllocation) throws RoomAddRoomAllocationException {
+        if(roomAllocation != null && !this.getRoomAllocations().contains(roomAllocation))
+        {
+            this.getRoomAllocations().add(roomAllocation);
+        }
+        else
+        {
+            throw new RoomAddRoomAllocationException("Room Allocation already added to reservation");
+        }
+    }
     public Long getRoomId() {
         return roomId;
     }

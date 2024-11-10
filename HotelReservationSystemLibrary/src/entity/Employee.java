@@ -13,7 +13,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import util.enumerations.EmployeeRoleEnum;
+import util.exceptions.EmployeeAddExceptionException;
 
 @Entity
 public class Employee implements Serializable {
@@ -32,8 +35,14 @@ public class Employee implements Serializable {
     private String position;
     
     @Column (length = 64, nullable = false, unique = true)
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "Invalid email format")
     @NotNull
     private String email;
+    
+    @Column (length = 20, nullable = false)
+    @Size(min = 8, max = 20)
+    @NotNull
+    private String password;
     
     @Column (length = 8, nullable = false, unique = true)
     @NotNull
@@ -50,14 +59,26 @@ public class Employee implements Serializable {
         this.exceptions = new ArrayList<>();
     }
 
-    public Employee(String name, String position, String email, String phoneNumber, EmployeeRoleEnum role) {
+    public Employee(String name, String position, String email, String password, String phoneNumber, EmployeeRoleEnum role) {
         this();
         
         this.name = name;
         this.position = position;
         this.email = email;
+        this.password = password;
         this.phoneNumber = phoneNumber;
         this.employeeRole = role;
+    }
+    
+    public void addException(AllocationException exception) throws EmployeeAddExceptionException {
+        if(exception != null && !this.getExceptions().contains(exception))
+        {
+            this.getExceptions().add(exception);
+        }
+        else
+        {
+            throw new EmployeeAddExceptionException("Exception already added to employee");
+        }
     }
 
     public Long getEmployeeId() {
@@ -139,6 +160,14 @@ public class Employee implements Serializable {
 
     public void setExceptions(List<AllocationException> exceptions) {
         this.exceptions = exceptions;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
     
 }

@@ -11,6 +11,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import util.exceptions.PartnerAddReservationException;
 
 @Entity
 public class Partner implements Serializable {
@@ -23,6 +26,16 @@ public class Partner implements Serializable {
     @Column (length = 64, nullable = false, unique = true)
     @NotNull
     private String systemName;
+    
+    @Column (length = 64, nullable = false, unique = true)
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "Invalid email format")
+    @NotNull
+    private String email;
+    
+    @Column (length = 20, nullable = false)
+    @Size(min = 8, max = 20)
+    @NotNull
+    private String password;
     
     @OneToMany(mappedBy="partner", fetch = FetchType.LAZY)
     private List<Reservation> reservations;
@@ -39,12 +52,26 @@ public class Partner implements Serializable {
         this.reservations = new ArrayList<>();
     }
 
-    public Partner(String systemName) {
+    public Partner(String systemName, String email, String password) {
         this();
         
         this.systemName = systemName;
+        this.email = email;
+        this.password = password;
     }
-
+    
+    public void addReservation(Reservation reservation) throws PartnerAddReservationException 
+    {
+        if(reservation != null && !this.getReservations().contains(reservation))
+        {
+            this.getReservations().add(reservation);
+        }
+        else
+        {
+            throw new PartnerAddReservationException("Reservation already added to partner");
+        }
+    }
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -84,5 +111,21 @@ public class Partner implements Serializable {
 
     public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

@@ -16,6 +16,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
 import javax.persistence.TemporalType;
+import util.exceptions.ReservationAddRoomAllocationException;
+import util.exceptions.ReservationAddStayDetailException;
 
 @Entity
 public class Reservation implements Serializable {
@@ -45,6 +47,12 @@ public class Reservation implements Serializable {
     
     @NotNull
     private LocalTime checkOutTime;
+    
+    @NotNull
+    private boolean hasCheckedIn;
+    
+    @NotNull
+    private boolean hasCheckedOut;
 
     @ManyToOne (optional = false, fetch = FetchType.EAGER)
     @JoinColumn (name = "guestId", nullable = false)
@@ -67,6 +75,8 @@ public class Reservation implements Serializable {
     private List<RoomAllocation> roomAllocations;
     
     public Reservation() {
+        this.hasCheckedIn = false;
+        this.hasCheckedOut = false;
         this.stayDetails = new ArrayList<>();
         this.roomAllocations = new ArrayList<>();
     }
@@ -79,6 +89,28 @@ public class Reservation implements Serializable {
         this.checkOutDate = checkOutDate;
         this.checkInTime = STANDARD_CHECK_IN_TIME;  // Default check-in time is 2 PM
         this.checkOutTime = STANDARD_CHECK_OUT_TIME;  // Default check-out time is 12 Noon
+    }
+    
+    public void addStayDetails(StayDetails stayDetail) throws ReservationAddStayDetailException {
+        if(stayDetail != null && !this.getStayDetails().contains(stayDetail))
+        {
+            this.getStayDetails().add(stayDetail);
+        }
+        else
+        {
+            throw new ReservationAddStayDetailException("StayDetail already added to reservation");
+        }
+    }
+    
+    public void addRoomAllocation(RoomAllocation roomAllocation) throws ReservationAddRoomAllocationException {
+        if(roomAllocation != null && !this.getRoomAllocations().contains(roomAllocation))
+        {
+            this.getRoomAllocations().add(roomAllocation);
+        }
+        else
+        {
+            throw new ReservationAddRoomAllocationException("Room Allocation already added to reservation");
+        }
     }
     
     public Long getReservationId() {
@@ -192,5 +224,21 @@ public class Reservation implements Serializable {
 
     public void setCheckOutTime(LocalTime checkOutTime) {
         this.checkOutTime = checkOutTime;
+    }
+
+    public boolean isHasCheckedIn() {
+        return hasCheckedIn;
+    }
+
+    public void setHasCheckedIn(boolean hasCheckedIn) {
+        this.hasCheckedIn = hasCheckedIn;
+    }
+
+    public boolean isHasCheckedOut() {
+        return hasCheckedOut;
+    }
+
+    public void setHasCheckedOut(boolean hasCheckedOut) {
+        this.hasCheckedOut = hasCheckedOut;
     }
 }

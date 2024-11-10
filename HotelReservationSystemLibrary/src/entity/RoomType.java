@@ -15,6 +15,9 @@ import javax.persistence.OneToMany;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import util.enumerations.RoomTypeEnum;
+import util.exceptions.RoomTypeAddReservationException;
+import util.exceptions.RoomTypeAddRoomException;
+import util.exceptions.RoomTypeAddRoomRateException;
 
 @Entity
 public class RoomType implements Serializable {
@@ -58,6 +61,39 @@ public class RoomType implements Serializable {
         this.maxOccupancy = maxOccupancy;
         this.description = description;
         this.rooms = rooms;
+    }
+    
+    public void addReservation(Reservation reservation) throws RoomTypeAddReservationException {
+        if(reservation != null && !this.getReservations().contains(reservation))
+        {
+            this.getReservations().add(reservation);
+        }
+        else
+        {
+            throw new RoomTypeAddReservationException("Reservation already added to room type");
+        }
+    }
+    
+    public void addRoom(Room room) throws RoomTypeAddRoomException {
+        if(room != null && !this.getRooms().contains(room))
+        {
+            this.getRooms().add(room);
+        }
+        else
+        {
+            throw new RoomTypeAddRoomException("Room already added to room type");
+        }
+    }
+    
+    public void addRoomRate(RoomRate roomRate) throws RoomTypeAddRoomRateException {
+        if(roomRate != null && !this.getRoomRates().contains(roomRate))
+        {
+            this.getRoomRates().add(roomRate);
+        }
+        else
+        {
+            throw new RoomTypeAddRoomRateException("RoomRate already added to room type");
+        }
     }
 
     public Long getRoomTypeId() {
@@ -131,6 +167,14 @@ public class RoomType implements Serializable {
 
     public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
+    }
+
+    public List<RoomRate> getRoomRates() {
+        return roomRates;
+    }
+
+    public void setRoomRates(List<RoomRate> roomRates) {
+        this.roomRates = roomRates;
     }
     
 }
