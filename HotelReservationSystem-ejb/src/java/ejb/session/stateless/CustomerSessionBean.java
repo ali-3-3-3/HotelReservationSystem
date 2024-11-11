@@ -32,7 +32,7 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
 
     public CustomerSessionBean() {
        validatorFactory = Validation.buildDefaultValidatorFactory();
-        validator = validatorFactory.getValidator(); 
+       validator = validatorFactory.getValidator(); 
     }
 
     @Override
