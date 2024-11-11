@@ -1,20 +1,39 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
 package hotelreservationsystemmanagementclient;
 
-/**
- *
- * @author aliya
- */
+import ejb.session.stateless.AllocationExceptionSessionBeanRemote;
+import ejb.session.stateless.CustomerSessionBeanRemote;
+import ejb.session.stateless.EmployeeSessionBeanRemote;
+import ejb.session.stateless.GuestSessionBeanRemote;
+import ejb.session.stateless.ReservationSessionBeanRemote;
+import ejb.session.stateless.RoomRateSessionBeanRemote;
+import ejb.session.stateless.RoomSessionBeanRemote;
+import ejb.session.stateless.RoomTypeSessionBeanRemote;
+import javax.ejb.EJB;
+
 public class Main {
+    
+    @EJB
+    private static AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
+    @EJB
+    private static GuestSessionBeanRemote guestSessionBeanRemote;
+    @EJB
+    private static EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    @EJB
+    private static ReservationSessionBeanRemote reservationSessionBeanRemote;
+    @EJB
+    private static RoomSessionBeanRemote roomSessionBeanRemote;
+    @EJB
+    private static RoomRateSessionBeanRemote roomRateSessionBeanRemote;
+    @EJB
+    private static RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        
+        MainApp mainApp = new MainApp(allocationExceptionSessionBeanRemote, guestSessionBeanRemote, employeeSessionBeanRemote, reservationSessionBeanRemote, roomSessionBeanRemote, roomRateSessionBeanRemote, roomTypeSessionBeanRemote);
+        mainApp.runApp();
     }
     
 }

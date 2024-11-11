@@ -1,6 +1,10 @@
 package ejb.session.stateless;
 
 import entity.Room;
+import entity.RoomType;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
@@ -100,5 +104,26 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
     @Override
     public List<Room> viewAllRooms() {
         return em.createQuery("SELECT r FROM Room r", Room.class).getResultList();
+    }
+    
+    @Override
+    public List<RoomType> searchAvailableRoomTypes(Date checkInDate, Date checkOutDate) {
+        List<Room> rooms = em.createQuery("SELECT r FROM Room r", Room.class).getResultList();
+
+        Set<RoomType> availableRoomTypes = new HashSet<>();
+
+        for (Room room : rooms) {
+            boolean isAvailable = room.getRoomAllocations().stream().noneMatch(roomAllocation -> {
+                Date allocationStart = roomAllocation.getReservation().getCheckInDate();
+                Date allocationEnd = roomAllocation.getReservation().getCheckOutDate();
+                return (checkInDate.before(allocationEnd) && checkOutDate.after(allocationStart));
+            });
+
+            if (isAvailable) {
+                availableRoomTypes.add(room.getRoomType());
+            }
+        }
+
+        return new ArrayList<>(availableRoomTypes);
     }
 }
