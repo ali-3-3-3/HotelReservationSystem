@@ -31,7 +31,7 @@ public class AllocationException implements Serializable {
     @NotNull
     private ResolutionStatusEnum resolutionStatus;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "employeeId", nullable = false)
     @NotNull
     private Employee employee;

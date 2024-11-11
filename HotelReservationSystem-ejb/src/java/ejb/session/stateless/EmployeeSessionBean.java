@@ -45,7 +45,12 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
             em.flush();
             return employee;
             } else {
-                throw new InputDataValidationException();
+                StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
+                for (ConstraintViolation<Employee> violation : constraintViolations) {
+                errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
+                }
+                
+                throw new InputDataValidationException(errorMsg.toString());
             }
         } catch  (PersistenceException ex) {
             if (ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException")) {
@@ -72,9 +77,9 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
     }
     
     @Override
-    public Employee retrieveEmployeeByEmail(String email) throws EmployeeNotFoundException{
-        Query query = em.createQuery("SELECT e FROM Employee e WHERE e.email = :email");
-        query.setParameter("email", email);
+    public Employee retrieveEmployeeByUsername(String username) throws EmployeeNotFoundException{
+        Query query = em.createQuery("SELECT e FROM Employee e WHERE e.username = :username");
+        query.setParameter("username", username);
         
         try{
             return (Employee)query.getSingleResult();
@@ -84,9 +89,9 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
     }
     
     @Override
-    public Employee doLogin(String email, String password) throws InvalidLoginCredentialException {
+    public Employee doLogin(String username, String password) throws InvalidLoginCredentialException {
         try {
-            Employee employee = retrieveEmployeeByEmail(email);
+            Employee employee = retrieveEmployeeByUsername(username);
             if(employee.getPassword().equals(password)) {
                 return employee;
             } else {

@@ -1,7 +1,6 @@
 package entity;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,14 +13,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import util.enumerations.RateTypeEnum;
-import util.exceptions.RoomRateAddStayDetailException;
 
 @Entity
 public class RoomRate implements Serializable {
@@ -30,6 +27,10 @@ public class RoomRate implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roomRateId;
+    
+    @Column (length = 64, nullable = false)
+    @NotNull
+    private String name;
     
     @Enumerated(EnumType.STRING)
     @NotNull
@@ -45,38 +46,27 @@ public class RoomRate implements Serializable {
     
     @Column(nullable = false, precision = 6, scale = 2)
     @NotNull
-    @DecimalMin("0.00")
-    @Digits(integer = 4, fraction = 2)
-    private BigDecimal pricePerNight;
+    @Digits(integer = 3, fraction = 0)
+    private int ratePerNight;
 
-    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @ManyToOne (optional = false, cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn (name = "roomTypeId", nullable = false)
     @NotNull
     private RoomType roomType;
     
-    @OneToMany(mappedBy = "roomRate", fetch = FetchType.LAZY)
-    private List<StayDetails> stayDetails;
+    @ManyToMany (mappedBy = "roomRates", cascade = {}, fetch = FetchType.LAZY)
+    private List<Reservation> reservations;
 
     public RoomRate() {
-        this.stayDetails = new ArrayList<>();
+        this.reservations = new ArrayList<>();
     }
 
-    public RoomRate(RateTypeEnum rateType, Date startDate, Date endDate, BigDecimal pricePerNight, RoomType roomType) {
+    public RoomRate(String name, RateTypeEnum rateType, int pricePerNight, Date startDate, Date endDate) {
+        this.name = name;
         this.rateType = rateType;
+        this.ratePerNight = pricePerNight;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.pricePerNight = pricePerNight;
-    }
-    
-    public void addStayDetails(StayDetails stayDetail) throws RoomRateAddStayDetailException {
-        if(stayDetail != null && !this.getStayDetails().contains(stayDetail))
-        {
-            this.getStayDetails().add(stayDetail);
-        }
-        else
-        {
-            throw new RoomRateAddStayDetailException("StayDetail already added to reservation");
-        }
     }
 
     public Long getRoomRateId() {
@@ -136,12 +126,12 @@ public class RoomRate implements Serializable {
         this.endDate = endDate;
     }
 
-    public BigDecimal getPricePerNight() {
-        return pricePerNight;
+    public int getRatePerNight() {
+        return ratePerNight;
     }
 
-    public void setPricePerNight(BigDecimal pricePerNight) {
-        this.pricePerNight = pricePerNight;
+    public void setRatePerNight(int ratePerNight) {
+        this.ratePerNight = ratePerNight;
     }
 
     public RoomType getRoomType() {
@@ -152,12 +142,19 @@ public class RoomRate implements Serializable {
         this.roomType = roomType;
     }
 
-    public List<StayDetails> getStayDetails() {
-        return stayDetails;
+    public String getName() {
+        return name;
     }
 
-    public void setStayDetails(List<StayDetails> stayDetails) {
-        this.stayDetails = stayDetails;
+    public void setName(String name) {
+        this.name = name;
     }
-    
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public void setReservations(List<Reservation> reservations) {
+        this.reservations = reservations;
+    }
 }

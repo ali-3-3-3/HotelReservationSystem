@@ -11,13 +11,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
 import javax.persistence.TemporalType;
 import util.exceptions.ReservationAddRoomAllocationException;
-import util.exceptions.ReservationAddStayDetailException;
 
 @Entity
 public class Reservation implements Serializable {
@@ -67,18 +67,18 @@ public class Reservation implements Serializable {
     @JoinColumn(name = "roomTypeId", nullable = false)
     @NotNull
     private RoomType roomType;
-   
-    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
-    private List<StayDetails> stayDetails;
     
-    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
+    @ManyToMany (mappedBy="reservations", cascade = {}, fetch = FetchType.LAZY)
+    private List<RoomRate> roomRates;
+
+    @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.LAZY)
     private List<RoomAllocation> roomAllocations;
     
     public Reservation() {
         this.hasCheckedIn = false;
         this.hasCheckedOut = false;
-        this.stayDetails = new ArrayList<>();
         this.roomAllocations = new ArrayList<>();
+        this.roomRates = new ArrayList<>();
     }
     
     public Reservation(Date reservationDate, Date checkInDate, Date checkOutDate) {
@@ -89,17 +89,6 @@ public class Reservation implements Serializable {
         this.checkOutDate = checkOutDate;
         this.checkInTime = STANDARD_CHECK_IN_TIME;  // Default check-in time is 2 PM
         this.checkOutTime = STANDARD_CHECK_OUT_TIME;  // Default check-out time is 12 Noon
-    }
-    
-    public void addStayDetails(StayDetails stayDetail) throws ReservationAddStayDetailException {
-        if(stayDetail != null && !this.getStayDetails().contains(stayDetail))
-        {
-            this.getStayDetails().add(stayDetail);
-        }
-        else
-        {
-            throw new ReservationAddStayDetailException("StayDetail already added to reservation");
-        }
     }
     
     public void addRoomAllocation(RoomAllocation roomAllocation) throws ReservationAddRoomAllocationException {
@@ -194,14 +183,6 @@ public class Reservation implements Serializable {
         this.roomType = roomType;
     }
 
-    public List<StayDetails> getStayDetails() {
-        return stayDetails;
-    }
-
-    public void setStayDetails(List<StayDetails> stayDetails) {
-        this.stayDetails = stayDetails;
-    }
-
     public List<RoomAllocation> getRoomAllocations() {
         return roomAllocations;
     }
@@ -240,5 +221,13 @@ public class Reservation implements Serializable {
 
     public void setHasCheckedOut(boolean hasCheckedOut) {
         this.hasCheckedOut = hasCheckedOut;
+    }
+
+    public List<RoomRate> getRoomRates() {
+        return roomRates;
+    }
+
+    public void setRoomRates(List<RoomRate> roomRates) {
+        this.roomRates = roomRates;
     }
 }

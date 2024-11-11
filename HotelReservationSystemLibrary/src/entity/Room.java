@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import util.enumerations.RoomStatusEnum;
 import util.exceptions.RoomAddRoomAllocationException;
 
 @Entity
@@ -38,7 +39,7 @@ public class Room implements Serializable {
     private boolean isClean;
     
     @NotNull
-    private boolean isReserved;
+    private RoomStatusEnum roomStatus;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "roomTypeId", nullable = false)
@@ -50,16 +51,15 @@ public class Room implements Serializable {
 
     public Room() {
         this.isClean = false;
-        this.isReserved = false;
         this.roomAllocations = new ArrayList<>();
     }
 
-    public Room(String roomNumber, int floorNumber, RoomType roomType) {
+    public Room(String roomNumber, int floorNumber, RoomStatusEnum roomStatus) {
         this();
         
         this.roomNumber = roomNumber;
         this.floorNumber = floorNumber;
-        this.roomType = roomType;
+        this.roomStatus = roomStatus;
     }
 
     
@@ -138,20 +138,20 @@ public class Room implements Serializable {
         this.isClean = isClean;
     }
 
-    public boolean isIsReserved() {
-        return isReserved;
-    }
-
-    public void setIsReserved(boolean isReserved) {
-        this.isReserved = isReserved;
-    }
-
     public List<RoomAllocation> getRoomAllocations() {
         return roomAllocations;
     }
 
     public void setRoomAllocations(List<RoomAllocation> roomAllocations) {
         this.roomAllocations = roomAllocations;
+    }
+
+    public RoomStatusEnum getRoomStatus() {
+        return roomStatus;
+    }
+
+    public void setRoomStatus(RoomStatusEnum roomStatus) {
+        this.roomStatus = roomStatus;
     }
     
 }

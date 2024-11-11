@@ -13,7 +13,7 @@ import util.exceptions.UnknownPersistenceException;
 public interface PartnerSessionBeanLocal {
     public Partner createNewPartner(Partner partner) throws InputDataValidationException, PartnerExistException, UnknownPersistenceException;
     
-    public Partner retrievePartnerByEmail(String email) throws PartnerNotFoundException;
+    public Partner retrievePartnerBySystemName(String email) throws PartnerNotFoundException;
     
     public Partner doLogin(String email, String password) throws InvalidLoginCredentialException;
 

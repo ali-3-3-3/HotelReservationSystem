@@ -37,7 +37,7 @@ public class Partner implements Serializable {
     @NotNull
     private String password;
     
-    @OneToMany(mappedBy="partner", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy="partner", cascade = {}, fetch = FetchType.LAZY)
     private List<Reservation> reservations;
 
     public Long getPartnerId() {

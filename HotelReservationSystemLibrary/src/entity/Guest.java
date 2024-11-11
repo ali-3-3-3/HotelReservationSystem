@@ -39,7 +39,7 @@ public abstract class Guest implements Serializable {
     @NotNull
     private String phoneNumber;
     
-    @OneToMany(mappedBy="guest", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy="guest", cascade = {}, fetch = FetchType.LAZY)
     private List<Reservation> reservations;
     
     public Guest() {

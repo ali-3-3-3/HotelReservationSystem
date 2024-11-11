@@ -76,7 +76,7 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
             room.setFloorNumber(updatedRoom.getFloorNumber());
             room.setRoomType(updatedRoom.getRoomType());
             room.setIsClean(updatedRoom.isIsClean());
-            room.setIsReserved(updatedRoom.isIsReserved());
+            room.setRoomStatus(updatedRoom.getRoomStatus());
 
             em.merge(room);
             return room;

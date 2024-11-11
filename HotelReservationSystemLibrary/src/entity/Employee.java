@@ -28,29 +28,21 @@ public class Employee implements Serializable {
     
     @Column (length = 64, nullable = false)
     @NotNull
-    private String name;
-    
-    @Column (length = 64, nullable = false)
-    @NotNull
-    private String position;
-    
-    @Column (length = 64, nullable = false, unique = true)
-    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "Invalid email format")
-    @NotNull
-    private String email;
+    private String username;
     
     @Column (length = 20, nullable = false)
     @Size(min = 8, max = 20)
     @NotNull
     private String password;
-    
-    @Column (length = 8, nullable = false, unique = true)
-    @NotNull
-    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private EmployeeRoleEnum employeeRole;
+    private EmployeeRoleEnum UserRole;
+    
+    @Column (length = 64, nullable = false, unique = true)
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "Invalid email format")
+    @NotNull
+    private String email;
     
     @OneToMany(mappedBy="employee", fetch = FetchType.LAZY)
     private List<AllocationException> exceptions;
@@ -59,15 +51,13 @@ public class Employee implements Serializable {
         this.exceptions = new ArrayList<>();
     }
 
-    public Employee(String name, String position, String email, String password, String phoneNumber, EmployeeRoleEnum role) {
+    public Employee(String name, String password, EmployeeRoleEnum role, String email) {
         this();
         
-        this.name = name;
-        this.position = position;
-        this.email = email;
+        this.username = name;
         this.password = password;
-        this.phoneNumber = phoneNumber;
-        this.employeeRole = role;
+        this.UserRole = role;
+        this.email = email;
     }
     
     public void addException(AllocationException exception) throws EmployeeAddExceptionException {
@@ -114,20 +104,12 @@ public class Employee implements Serializable {
         return "entity.Employee[ id=" + employeeId + " ]";
     }
     
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPosition() {
-        return position;
-    }
-
-    public void setPosition(String position) {
-        this.position = position;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -138,20 +120,12 @@ public class Employee implements Serializable {
         this.email = email;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public EmployeeRoleEnum getUserRole() {
+        return UserRole;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public EmployeeRoleEnum getEmployeeRole() {
-        return employeeRole;
-    }
-
-    public void setEmployeeRole(EmployeeRoleEnum employeeRole) {
-        this.employeeRole = employeeRole;
+    public void setUserRole(EmployeeRoleEnum UserRole) {
+        this.UserRole = UserRole;
     }
 
     public List<AllocationException> getExceptions() {

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB30/StatelessEjbClass.java to edit this template
- */
 package ejb.session.stateless;
 
 import entity.RoomRate;
@@ -22,10 +18,6 @@ import util.exceptions.RoomRateNotFoundException;
 import util.exceptions.RoomRateUpdateException;
 import util.exceptions.UnknownPersistenceException;
 
-/**
- *
- * @author aliya
- */
 @Stateless
 public class RoomRateSessionBean implements RoomRateSessionBeanRemote, RoomRateSessionBeanLocal {
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
@@ -83,7 +75,7 @@ public class RoomRateSessionBean implements RoomRateSessionBeanRemote, RoomRateS
             roomRate.setRateType(updatedRoomRate.getRateType());
             roomRate.setStartDate(updatedRoomRate.getStartDate());
             roomRate.setEndDate(updatedRoomRate.getEndDate());
-            roomRate.setPricePerNight(updatedRoomRate.getPricePerNight());
+            roomRate.setRatePerNight(updatedRoomRate.getRatePerNight());
             roomRate.setRoomType(updatedRoomRate.getRoomType());
 
             em.merge(roomRate);

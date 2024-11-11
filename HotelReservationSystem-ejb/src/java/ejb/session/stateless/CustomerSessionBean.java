@@ -44,7 +44,12 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
                 em.persist(customer);
                 em.flush();
             } else {
-                throw new InputDataValidationException();
+                StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
+                for (ConstraintViolation<Customer> violation : constraintViolations) {
+                errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
+                
+                throw new InputDataValidationException(errorMsg.toString());
+                }
             }
             return customer;
         } catch (PersistenceException ex) {

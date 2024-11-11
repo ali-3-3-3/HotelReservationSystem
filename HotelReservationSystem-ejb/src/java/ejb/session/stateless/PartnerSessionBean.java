@@ -45,7 +45,12 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
             em.flush();
             return partner;
             } else {
-                 throw new InputDataValidationException();
+                StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
+                for (ConstraintViolation<Partner> violation : constraintViolations) {
+                errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
+                }
+                
+                throw new InputDataValidationException(errorMsg.toString());
             }
         } catch (PersistenceException ex) {
             if (ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException")) {
@@ -62,9 +67,9 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
     
      
     @Override
-    public Partner retrievePartnerByEmail(String email) throws PartnerNotFoundException {
-        Query query = em.createQuery("SELECT p FROM Partner p WHERE p.email = :email");
-        query.setParameter("email", email);
+    public Partner retrievePartnerBySystemName(String systemName) throws PartnerNotFoundException {
+        Query query = em.createQuery("SELECT p FROM Partner p WHERE p.systemName = :systemName");
+        query.setParameter("systemName", systemName);
         
         try {
         return (Partner) query.getSingleResult();
@@ -84,9 +89,9 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
     }
 
     @Override
-    public Partner doLogin(String email, String password) throws InvalidLoginCredentialException {
+    public Partner doLogin(String systemName, String password) throws InvalidLoginCredentialException {
         try {
-            Partner partner = retrievePartnerByEmail(email);
+            Partner partner = retrievePartnerBySystemName(systemName);
             
             if(partner.getPassword().equals(password)) {
                 return partner;

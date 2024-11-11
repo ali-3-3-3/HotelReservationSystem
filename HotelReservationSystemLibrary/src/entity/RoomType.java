@@ -11,10 +11,11 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
-import util.enumerations.RoomTypeEnum;
 import util.exceptions.RoomTypeAddReservationException;
 import util.exceptions.RoomTypeAddRoomException;
 import util.exceptions.RoomTypeAddRoomRateException;
@@ -29,7 +30,7 @@ public class RoomType implements Serializable {
     
     @Enumerated(EnumType.STRING)
     @NotNull
-    private RoomTypeEnum typeName;
+    private String name;
     
     @Digits(integer = 2, fraction = 0)
     @NotNull
@@ -38,6 +39,10 @@ public class RoomType implements Serializable {
     @Column(length = 256, nullable = false)
     @NotNull
     private String description;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "nextHigherRoomTypeId")
+    private RoomType nextHigherRoomType;
     
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
     private List<Room> rooms;
@@ -54,13 +59,12 @@ public class RoomType implements Serializable {
         this.roomRates = new ArrayList<>();
     }
 
-    public RoomType(RoomTypeEnum typeName, int maxOccupancy, String description, List<Room> rooms) {
+    public RoomType(String typeName, int maxOccupancy, String description) {
         this();
         
-        this.typeName = typeName;
+        this.name = typeName;
         this.maxOccupancy = maxOccupancy;
         this.description = description;
-        this.rooms = rooms;
     }
     
     public void addReservation(Reservation reservation) throws RoomTypeAddReservationException {
@@ -129,14 +133,6 @@ public class RoomType implements Serializable {
         return "entity.RoomType[ id=" + roomTypeId + " ]";
     }
 
-    public RoomTypeEnum getTypeName() {
-        return typeName;
-    }
-
-    public void setTypeName(RoomTypeEnum typeName) {
-        this.typeName = typeName;
-    }
-
     public int getMaxOccupancy() {
         return maxOccupancy;
     }
@@ -175,6 +171,22 @@ public class RoomType implements Serializable {
 
     public void setRoomRates(List<RoomRate> roomRates) {
         this.roomRates = roomRates;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public RoomType getNextHigherRoomType() {
+        return nextHigherRoomType;
+    }
+
+    public void setNextHigherRoomType(RoomType nextHigherRoomType) {
+        this.nextHigherRoomType = nextHigherRoomType;
     }
     
 }

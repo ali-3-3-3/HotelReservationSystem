@@ -76,9 +76,10 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
         }
 
         try {
-            roomType.setTypeName(updatedRoomType.getTypeName());
+            roomType.setName(updatedRoomType.getName());
             roomType.setMaxOccupancy(updatedRoomType.getMaxOccupancy());
             roomType.setDescription(updatedRoomType.getDescription());
+            roomType.setNextHigherRoomType(updatedRoomType.getNextHigherRoomType());
 
             em.merge(roomType);
             return roomType;
