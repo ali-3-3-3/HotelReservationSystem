@@ -78,6 +78,18 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
     }
     
     @Override
+    public Customer findCustomerById(Long customerId) throws CustomerNotFoundException {
+        Customer customer = em.find(Customer.class, customerId);
+
+        if (customer == null) {
+            throw new CustomerNotFoundException("Customer with ID " + customerId + " does not exist.");
+        }
+
+        return customer;
+    }
+
+    
+    @Override
     public Customer doLogin(String username, String password) throws InvalidLoginCredentialException {
         try {
             Customer customer = retrieveCustomerByUsername(username);

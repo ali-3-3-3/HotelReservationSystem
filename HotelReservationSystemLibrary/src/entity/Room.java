@@ -31,7 +31,6 @@ public class Room implements Serializable {
     private String roomNumber;
     
     @Column (length = 2, nullable = false)
-    @Pattern(regexp = "^[0-9]{2}$", message = "Floor number must be a two-digit number between 00 and 99.")
     @NotNull
     private int floorNumber;
     

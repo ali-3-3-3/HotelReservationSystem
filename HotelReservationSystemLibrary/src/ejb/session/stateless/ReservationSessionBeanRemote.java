@@ -1,22 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB30/SessionRemote.java to edit this template
- */
 package ejb.session.stateless;
 
 import entity.Reservation;
+import entity.RoomType;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Remote;
 import util.exceptions.InputDataValidationException;
+import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationDeleteException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
+import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
-/**
- *
- * @author aliya
- */
 @Remote
 public interface ReservationSessionBeanRemote {
 
@@ -33,5 +29,7 @@ public interface ReservationSessionBeanRemote {
     public List<Reservation> retrieveReservationsByPartnerId(Long partnerId);
 
     public List<Reservation> retrieveReservationsByGuestId(Long guestId);
+
+    public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException;
     
 }

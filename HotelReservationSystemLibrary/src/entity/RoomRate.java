@@ -3,7 +3,9 @@ package entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -44,7 +46,7 @@ public class RoomRate implements Serializable {
     @NotNull
     private Date endDate;
     
-    @Column(nullable = false, precision = 6, scale = 2)
+    @Column(nullable = false)
     @NotNull
     @Digits(integer = 3, fraction = 0)
     private int ratePerNight;
@@ -55,10 +57,10 @@ public class RoomRate implements Serializable {
     private RoomType roomType;
     
     @ManyToMany (mappedBy = "roomRates", cascade = {}, fetch = FetchType.LAZY)
-    private List<Reservation> reservations;
+    private Set<Reservation> reservations;
 
     public RoomRate() {
-        this.reservations = new ArrayList<>();
+        this.reservations = new HashSet<>();
     }
 
     public RoomRate(String name, RateTypeEnum rateType, int pricePerNight, Date startDate, Date endDate) {
@@ -150,11 +152,11 @@ public class RoomRate implements Serializable {
         this.name = name;
     }
 
-    public List<Reservation> getReservations() {
+    public Set<Reservation> getReservations() {
         return reservations;
     }
 
-    public void setReservations(List<Reservation> reservations) {
+    public void setReservations(Set<Reservation> reservations) {
         this.reservations = reservations;
     }
 }

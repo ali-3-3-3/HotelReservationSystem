@@ -38,7 +38,8 @@ public class RoomAllocation implements Serializable {
     @NotNull
     private Reservation reservation;
     
-    @OneToOne(mappedBy = "roomAllocation", optional = true, fetch = FetchType.EAGER)
+    @OneToOne
+    @JoinColumn(name = "exceptionId", unique = true)
     private AllocationException exception;
 
     public RoomAllocation() {
