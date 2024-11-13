@@ -31,12 +31,14 @@ class MainApp {
     private boolean login = false;
     private Customer currentCustomer;
     private int response = 0;
-    private Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
     
     public MainApp() {
+        this.scanner = new Scanner(System.in);
     }
 
     public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote, RoomRateSessionBeanRemote roomRateSessionBeanRemote, RoomTypeSessionBeanRemote roomTypeSessionBeanRemote) {
+        this.scanner = new Scanner(System.in);
         this.customerSessionBeanRemote = customerSessionBeanRemote;
         this.reservationSessionBeanRemote = reservationSessionBeanRemote;
         this.roomSessionBeanRemote = roomSessionBeanRemote;
@@ -45,56 +47,58 @@ class MainApp {
     }
 
     public void runApp() {
-        while(true) {
+        while (true) {
             System.out.println("*** Hotel Reservation System ***");
-            if(currentCustomer == null && login == false) {
+            if (currentCustomer == null && !login) {
                 System.out.println("1: Login");
-                System.out.println("2: Register\n"); 
-                System.out.println("3: Search & Book Hotel Room!\n"); 
-                System.out.println("4: Exit\n");   
+                System.out.println("2: Register");
+                System.out.println("3: Search Hotel Room!");
+                System.out.println("4: Exit");
             } else {
-                System.out.println("1: Logout");
-                System.out.println("2: Exit\n");
+                System.out.println("1: Reserve Hotel Room!");
+                System.out.println("2: View all my reservations");
+                System.out.println("3: Logout");
             }
-            
+
             response = 0;
-            
-            while (response < 1 || response > 4) {    
-                System.out.println("> ");
+
+            // Ensure valid response is entered
+            while (response < 1 || response > 4) {
+                System.out.print("> ");
                 response = scanner.nextInt();
-                
-                if(response == 1 && currentCustomer == null && login == false) {
-                    try {
-                        doLogin();
-                        System.out.println("Login successful!");
-                        showCustomerMenu();
-                    } catch (InvalidLoginCredentialException ex) {
-                        System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
+                scanner.nextLine();  // Consume the newline character left by nextInt()
+
+                // Handling user options based on the login state
+                if (response == 1) {
+                    if (currentCustomer == null && !login) {
+                        try {
+                            doLogin();
+                            System.out.println("Login successful!");
+                            showCustomerMenu(); 
+                        } catch (InvalidLoginCredentialException ex) {
+                            System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
+                        }
+                    } else if (currentCustomer != null && login) {
+                        doLogout();
+                        System.out.println("Logout successful!");
                     }
-                } 
-                else if(response == 1 && currentCustomer != null && login != false) {
-                    doLogout();
-                    System.out.println("Logout successful!");
-                } 
-                else if(response == 2 && currentCustomer == null && login == false) {
-                    break;
-                } 
-                else if(response == 2 && currentCustomer == null && login == false) {
-                    try {
-                        doRegister();
-                    } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
-                        Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                } else if (response == 2) {
+                    if (currentCustomer == null && !login) {
+                        try {
+                            doRegister();
+                        } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
+                            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
-                } 
-                else if(response == 3 && currentCustomer == null && login == false) {
+                } else if (response == 3 && currentCustomer == null && !login) {
                     searchHotelRooms();
-                } 
-                else {
+                } else {
                     System.out.println("Invalid option, please try again!\n");
-                }   
+                }
             }
-            
-            if(response == 2 && currentCustomer != null && login == true | response == 4) {
+
+            // Break the loop when the user wants to exit
+            if ((response == 3 && currentCustomer != null && login) || response == 4) {
                 break;
             }
         }
@@ -124,7 +128,23 @@ class MainApp {
     }
 
     public void showCustomerMenu() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        response = 0;
+        
+        System.out.println("1: Reserve Hotel Room!");
+        System.out.println("2: View all my reservations");
+        System.out.println("3: Logout");
+        System.out.print("> ");
+        
+        response = scanner.nextInt();
+        scanner.nextLine();
+        
+        if (response == 1) {
+            searchHotelRooms();
+        } else if (response == 2) {
+            
+        }
+        
+        
     }
 
     public void doRegister() throws InputDataValidationException, UnknownPersistenceException, CustomerExistException {
@@ -174,36 +194,32 @@ class MainApp {
                 }
             }
 
-            // Get available room types from the session bean
             List<RoomType> availableRoomTypes = roomSessionBeanRemote.searchAvailableRoomTypes(checkInDate, checkOutDate);
 
-            // Display available room types with index for selection
             if (availableRoomTypes != null && !availableRoomTypes.isEmpty()) {
                 System.out.println("Available Room Types:");
                 for (int i = 0; i < availableRoomTypes.size(); i++) {
                     RoomType roomType = availableRoomTypes.get(i);
                     System.out.println((i + 1) + ": " + roomType.getName());
                 }
+                if(currentCustomer != null && login == true) {
+                    int selection = 0;
+                    while (selection < 1 || selection > availableRoomTypes.size()) {
+                        System.out.print("Select a Room Type by number (1 - " + availableRoomTypes.size() + "): ");
+                        try {
+                            selection = Integer.parseInt(scanner.nextLine());
+                        } catch (NumberFormatException ex) {
+                            System.out.println("Invalid input. Please enter a number.");
+                        }
+                    }
 
-                // Allow customer to select a room type
-                int selection = 0;
-                while (selection < 1 || selection > availableRoomTypes.size()) {
-                    System.out.print("Select a Room Type by number (1 - " + availableRoomTypes.size() + "): ");
-                    try {
-                        selection = Integer.parseInt(scanner.nextLine());
-                    } catch (NumberFormatException ex) {
-                        System.out.println("Invalid input. Please enter a number.");
+                    RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
+
+                    makeReservation(selectedRoomType, checkInDate, checkOutDate);
+                    } else {
+                        System.out.println("No rooms available for the selected dates.");
                     }
                 }
-
-                // Retrieve the selected RoomType object
-                RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
-
-                // Proceed to make a reservation for the selected room type
-                makeReservation(selectedRoomType, checkInDate, checkOutDate);
-            } else {
-                System.out.println("No rooms available for the selected dates.");
-            }
 
         } catch (Exception ex) {
             System.err.println("An error occurred while searching for room types: " + ex.getMessage());
