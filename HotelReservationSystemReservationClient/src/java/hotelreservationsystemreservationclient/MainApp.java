@@ -7,7 +7,12 @@ import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import util.exceptions.CustomerExistException;
+import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
+import util.exceptions.UnknownPersistenceException;
 
 class MainApp {
     private CustomerSessionBeanRemote customerSessionBeanRemote;
@@ -68,7 +73,11 @@ class MainApp {
                     break;
                 } 
                 else if(response == 2 && currentCustomer == null && login == false) {
-                    doRegister();
+                    try {
+                        doRegister();
+                    } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
+                        Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 } 
                 else if(response == 3 && currentCustomer == null && login == false) {
                     searchHotelRooms();
@@ -111,8 +120,28 @@ class MainApp {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private void doRegister() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void doRegister() throws InputDataValidationException, UnknownPersistenceException, CustomerExistException {
+        try {
+                System.out.println("*** Register as Guest ***\n");
+
+        System.out.print("Enter Name: ");
+        String name = scanner.nextLine().trim();
+        System.out.print("Enter Email: ");
+        String email = scanner.nextLine().trim();
+        System.out.print("Enter Phone Number: ");
+        String phone = scanner.nextLine().trim();
+        System.out.print("Enter Username: ");
+        String username = scanner.nextLine().trim();
+        System.out.print("Enter Password: ");
+        String password = scanner.nextLine().trim();
+        
+        Customer customer = new Customer(name, email, phone, username, password);
+        
+        customerSessionBeanRemote.createNewCustomer(customer);
+        
+        } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
+            ex.getMessage();
+        }
     }
 
     private void searchHotelRooms() {
