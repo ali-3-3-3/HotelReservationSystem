@@ -38,23 +38,26 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
     @Override
     @Transactional
     public Customer createNewCustomer(Customer customer) throws InputDataValidationException, UnknownPersistenceException, CustomerExistException {
-        Set<ConstraintViolation<Customer>>constraintViolations = validator.validate(customer);
+        Set<ConstraintViolation<Customer>> constraintViolations = validator.validate(customer);
+        StringBuilder errorMsg = new StringBuilder();
+
+        constraintViolations.forEach(violation -> {
+            errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
+        });
+
+        if (errorMsg.length() > 0) {
+            throw new InputDataValidationException("Input data validation error(s):" + errorMsg.toString());
+        }
+
         try {
-            if (constraintViolations.isEmpty()) {
-                em.persist(customer);
-                em.flush();
-            } else {
-                StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
-                for (ConstraintViolation<Customer> violation : constraintViolations) {
-                errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
-                
-                throw new InputDataValidationException(errorMsg.toString());
-                }
-            }
+            em.persist(customer);
+            em.flush();
             return customer;
+
         } catch (PersistenceException ex) {
-              if (ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException")) {
+            if (ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException")) {
                 if (ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException")) {
+                    // Handle unique constraint violation
                     throw new CustomerExistException("ID Number/Contact Number/Username already exists!");
                 } else {
                     throw new UnknownPersistenceException(ex.getMessage());
@@ -64,7 +67,7 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
             }
         }
     }
-    
+ 
     @Override
     public Customer retrieveCustomerByUsername(String username) throws CustomerNotFoundException{
         Query query = em.createQuery("SELECT e FROM Customer e WHERE e.username = :user");
@@ -87,7 +90,7 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
 
         return customer;
     }
-
+    
     
     @Override
     public Customer doLogin(String username, String password) throws InvalidLoginCredentialException {
