@@ -1,12 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB30/StatelessEjbClass.java to edit this template
- */
 package ejb.session.stateless;
 
 import entity.Reservation;
+import entity.Room;
+import entity.RoomType;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,21 +19,26 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import util.enumerations.RoomStatusEnum;
+import util.exceptions.CustomerNotFoundException;
 import util.exceptions.InputDataValidationException;
+import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationDeleteException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
+import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
-/**
- *
- * @author aliya
- */
 @Stateless
 public class ReservationSessionBean implements ReservationSessionBeanRemote, ReservationSessionBeanLocal {
 
+    @EJB
+    private CustomerSessionBeanLocal customerSessionBean;
+
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
     private EntityManager em;
+    
+    
     
     private final ValidatorFactory validatorFactory;
     private final Validator validator;
@@ -65,6 +72,38 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
                 throw new UnknownPersistenceException(ex.getMessage());
             }
         }
+    }
+    
+    @Override
+    public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) 
+        throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
+    
+        try {
+            if (roomCount < 1 || roomCount > 9) {
+                throw new InvalidRoomCountException("You can reserve between 1 and 9 rooms.");
+            }
+            
+            List<Room> availableRooms = em.createQuery(
+                    "SELECT r FROM Room r WHERE r.roomType = :roomType AND r.roomStatus = :availableStatus", Room.class)
+                    .setParameter("roomType", roomType)
+                    .setParameter("availableStatus", RoomStatusEnum.AVAILABLE)
+                    .getResultList();
+            
+            if (availableRooms.size() < roomCount) {
+                throw new RoomTypeUnavailableException("Requested room type has only " + availableRooms.size() + " rooms available.");
+            }
+            
+            
+            Reservation reservation = new Reservation(new Date(), checkInDate, checkOutDate, roomCount);
+            
+            reservation.setGuest(customerSessionBean.findCustomerById(customerId));
+            reservation.setRoomType(roomType);
+            
+            return createReservation(reservation);
+        } catch (CustomerNotFoundException ex) {
+            Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     @Override

@@ -6,12 +6,19 @@ import ejb.session.stateless.RoomRateSessionBeanRemote;
 import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
+import entity.Reservation;
+import entity.RoomType;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.exceptions.CustomerExistException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
+import util.exceptions.InvalidRoomCountException;
+import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
 class MainApp {
@@ -43,7 +50,7 @@ class MainApp {
             if(currentCustomer == null && login == false) {
                 System.out.println("1: Login");
                 System.out.println("2: Register\n"); 
-                System.out.println("3: Search Hotel Room\n"); 
+                System.out.println("3: Search & Book Hotel Room!\n"); 
                 System.out.println("4: Exit\n");   
             } else {
                 System.out.println("1: Logout");
@@ -110,42 +117,170 @@ class MainApp {
         }
     }
     
-    private void doLogout() {
+    public void doLogout() {
         currentCustomer = null;
         login = false;
         System.out.println("Logout successful!" );
     }
 
-    private void showCustomerMenu() {
+    public void showCustomerMenu() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void doRegister() throws InputDataValidationException, UnknownPersistenceException, CustomerExistException {
         try {
-                System.out.println("*** Register as Guest ***\n");
+            System.out.println("*** Register as Guest ***\n");
 
-        System.out.print("Enter Name: ");
-        String name = scanner.nextLine().trim();
-        System.out.print("Enter Email: ");
-        String email = scanner.nextLine().trim();
-        System.out.print("Enter Phone Number: ");
-        String phone = scanner.nextLine().trim();
-        System.out.print("Enter Username: ");
-        String username = scanner.nextLine().trim();
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine().trim();
-        
-        Customer customer = new Customer(name, email, phone, username, password);
-        
-        customerSessionBeanRemote.createNewCustomer(customer);
+            System.out.print("Enter Name: ");
+            String name = scanner.nextLine().trim();
+            System.out.print("Enter Email: ");
+            String email = scanner.nextLine().trim();
+            System.out.print("Enter Phone Number: ");
+            String phone = scanner.nextLine().trim();
+            System.out.print("Enter Username: ");
+            String username = scanner.nextLine().trim();
+            System.out.print("Enter Password: ");
+            String password = scanner.nextLine().trim();
+
+            Customer customer = new Customer(name, email, phone, username, password);
+
+            customerSessionBeanRemote.createNewCustomer(customer);
         
         } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
             ex.getMessage();
         }
     }
 
-    private void searchHotelRooms() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void searchHotelRooms() {
+        Date checkInDate = null;
+        Date checkOutDate = null;
+
+        try {
+            // Input handling for dates (as shown previously)
+            while (checkInDate == null) {
+                checkInDate = getDateInput("check-in");
+                if (checkInDate == null) {
+                    System.out.println("Invalid check-in date. Please try again.");
+                }
+            }
+
+            while (checkOutDate == null) {
+                checkOutDate = getDateInput("check-out");
+                if (checkOutDate == null) {
+                    System.out.println("Invalid check-out date. Please try again.");
+                } else if (!checkOutDate.after(checkInDate)) {
+                    System.out.println("Check-out date must be after the check-in date. Please try again.");
+                    checkOutDate = null;
+                }
+            }
+
+            // Get available room types from the session bean
+            List<RoomType> availableRoomTypes = roomSessionBeanRemote.searchAvailableRoomTypes(checkInDate, checkOutDate);
+
+            // Display available room types with index for selection
+            if (availableRoomTypes != null && !availableRoomTypes.isEmpty()) {
+                System.out.println("Available Room Types:");
+                for (int i = 0; i < availableRoomTypes.size(); i++) {
+                    RoomType roomType = availableRoomTypes.get(i);
+                    System.out.println((i + 1) + ": " + roomType.getName());
+                }
+
+                // Allow customer to select a room type
+                int selection = 0;
+                while (selection < 1 || selection > availableRoomTypes.size()) {
+                    System.out.print("Select a Room Type by number (1 - " + availableRoomTypes.size() + "): ");
+                    try {
+                        selection = Integer.parseInt(scanner.nextLine());
+                    } catch (NumberFormatException ex) {
+                        System.out.println("Invalid input. Please enter a number.");
+                    }
+                }
+
+                // Retrieve the selected RoomType object
+                RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
+
+                // Proceed to make a reservation for the selected room type
+                makeReservation(selectedRoomType, checkInDate, checkOutDate);
+            } else {
+                System.out.println("No rooms available for the selected dates.");
+            }
+
+        } catch (Exception ex) {
+            System.err.println("An error occurred while searching for room types: " + ex.getMessage());
+        }
+    }
+
+    
+    private Date getDateInput(String dateType) {
+        int year = 0, month = 0, day = 0;
+
+        try {
+            System.out.print("Enter " + dateType + " year (e.g., 2024): ");
+            year = Integer.parseInt(scanner.nextLine());
+            if (year < 1900 || year > 2100) {
+                throw new IllegalArgumentException("Please enter a year between 1900 and 2100.");
+            }
+
+            System.out.print("Enter " + dateType + " month (e.g., 9 for September): ");
+            month = Integer.parseInt(scanner.nextLine()) - 1;
+            if (month < 0 || month > 11) {
+                throw new IllegalArgumentException("Month must be between 1 and 12.");
+            }
+
+            System.out.print("Enter " + dateType + " day (e.g., 7): ");
+            day = Integer.parseInt(scanner.nextLine());
+            if (day < 1 || day > 31) {
+                throw new IllegalArgumentException("Day must be between 1 and 31.");
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setLenient(false); 
+            calendar.set(year, month, day, 0, 0, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+
+            return calendar.getTime();
+        } catch (NumberFormatException ex) {
+            System.err.println("Invalid input: Please enter numeric values for year, month, and day.");
+        } catch (IllegalArgumentException ex) {
+            System.err.println("Input error: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.err.println("An unexpected error occurred: " + ex.getMessage());
+        }
+
+        return null;
     }
     
+    private Reservation makeReservation(RoomType roomType, Date checkInDate, Date checkOutDate) {
+        System.out.println("Enter number of rooms to reserve (1-9): ");
+        int roomCount;
+
+        try {
+            roomCount = Integer.parseInt(scanner.nextLine());
+            if (roomCount < 1 || roomCount > 9) {
+                System.out.println("Invalid room count. Please enter a number between 1 and 9.");
+                return null;
+            }
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid input. Please enter a valid number.");
+            return null;
+        }
+
+        try {
+            Long customerId = currentCustomer.getGuestId();
+            Reservation reservation = reservationSessionBeanRemote.createReservationFromSearch(customerId, roomType, checkInDate, checkOutDate, roomCount);
+
+            System.out.println("Reservation successfully created!");
+            System.out.println("Reservation Details:");
+            System.out.println("Room Type: " + roomType.getName());
+            System.out.println("Check-in Date: " + checkInDate);
+            System.out.println("Check-out Date: " + checkOutDate);
+            System.out.println("Number of Rooms: " + roomCount);
+
+            return reservation;
+        } catch (InputDataValidationException | InvalidRoomCountException | RoomTypeUnavailableException | UnknownPersistenceException ex) {
+            System.out.println("An unexpected error occurred while creating the reservation: " + ex.getMessage());
+        }
+
+        return null;
+    }
 }

@@ -28,7 +28,7 @@ public class RoomType implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roomTypeId;
     
-    @Enumerated(EnumType.STRING)
+    @Column(length = 64, nullable = false)
     @NotNull
     private String name;
     

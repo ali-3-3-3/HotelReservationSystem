@@ -1,12 +1,16 @@
 package ejb.session.stateless;
 
 import entity.Reservation;
+import entity.RoomType;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Local;
 import util.exceptions.InputDataValidationException;
+import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationDeleteException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
+import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
 @Local
@@ -24,4 +28,6 @@ public interface ReservationSessionBeanLocal {
     public List<Reservation> retrieveReservationsByPartnerId(Long partnerId);
 
     public List<Reservation> retrieveReservationsByGuestId(Long guestId);
+    
+     public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException;
 }

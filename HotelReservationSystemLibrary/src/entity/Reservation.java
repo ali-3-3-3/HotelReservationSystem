@@ -4,19 +4,24 @@ import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Digits;
 import util.exceptions.ReservationAddRoomAllocationException;
 
 @Entity
@@ -53,6 +58,11 @@ public class Reservation implements Serializable {
     
     @NotNull
     private boolean hasCheckedOut;
+    
+    @Column(nullable = false)
+    @NotNull
+    @Digits(integer = 1, fraction = 0)
+    private int numOfRooms;
 
     @ManyToOne (optional = false, fetch = FetchType.EAGER)
     @JoinColumn (name = "guestId", nullable = false)
@@ -68,8 +78,12 @@ public class Reservation implements Serializable {
     @NotNull
     private RoomType roomType;
     
-    @ManyToMany (mappedBy="reservations", cascade = {}, fetch = FetchType.LAZY)
-    private List<RoomRate> roomRates;
+    @ManyToMany
+    @JoinTable(
+        name = "reservation_roomRate",
+        joinColumns = @JoinColumn(name = "reservationId"),
+        inverseJoinColumns = @JoinColumn(name = "roomRateId"))
+    private Set<RoomRate> roomRates;
 
     @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.LAZY)
     private List<RoomAllocation> roomAllocations;
@@ -78,10 +92,10 @@ public class Reservation implements Serializable {
         this.hasCheckedIn = false;
         this.hasCheckedOut = false;
         this.roomAllocations = new ArrayList<>();
-        this.roomRates = new ArrayList<>();
+        this.roomRates = new HashSet<>();
     }
     
-    public Reservation(Date reservationDate, Date checkInDate, Date checkOutDate) {
+    public Reservation(Date reservationDate, Date checkInDate, Date checkOutDate, int numOfRooms) {
         this();
         
         this.reservationDate = reservationDate;
@@ -89,6 +103,7 @@ public class Reservation implements Serializable {
         this.checkOutDate = checkOutDate;
         this.checkInTime = STANDARD_CHECK_IN_TIME;  // Default check-in time is 2 PM
         this.checkOutTime = STANDARD_CHECK_OUT_TIME;  // Default check-out time is 12 Noon
+        this.numOfRooms = numOfRooms;
     }
     
     public void addRoomAllocation(RoomAllocation roomAllocation) throws ReservationAddRoomAllocationException {
@@ -223,11 +238,19 @@ public class Reservation implements Serializable {
         this.hasCheckedOut = hasCheckedOut;
     }
 
-    public List<RoomRate> getRoomRates() {
+    public Set<RoomRate> getRoomRates() {
         return roomRates;
     }
 
-    public void setRoomRates(List<RoomRate> roomRates) {
+    public void setRoomRates(Set<RoomRate> roomRates) {
         this.roomRates = roomRates;
+    }
+
+    public int getNumOfRooms() {
+        return numOfRooms;
+    }
+
+    public void setNumOfRooms(int numOfRooms) {
+        this.numOfRooms = numOfRooms;
     }
 }
