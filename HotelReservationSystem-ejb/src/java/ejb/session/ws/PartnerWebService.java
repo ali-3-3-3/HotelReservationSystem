@@ -84,6 +84,23 @@ public class PartnerWebService {
     }
 
     //partner reserve room 
+    @WebMethod(operationName = "reserveNewReservation")
+    public Reservation reserveNewReservation(@WebParam(name = "checkinDate") Date checkinDate, @WebParam(name = "checkoutDate") Date checkoutDate, @WebParam(name = "noOfRoom") Integer noOfRoom, @WebParam(name = "roomType")RoomType roomType,
+            @WebParam(name = "guestId")Long guestId) throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException{
+        
+        Reservation reservation = reservationSessionBeanLocal.createReservationFromSearch(guestId, roomType, checkinDate, checkoutDate, noOfRoom);
+        
+        em.detach(reservation);
+        
+        reservation.setGuest(null);
+        reservation.setPartner(null);
+        reservation.setRoomType(null);
+        
+        return reservation;
+    }
+    
+    
+    
     // View Partner Reservation Details
     @WebMethod(operationName = "viewReservationsByPartnerId")
     public List<Reservation> viewReservationsByPartnerId(@WebParam(name = "partnerId") Long partnerId) {

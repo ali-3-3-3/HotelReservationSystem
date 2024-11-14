@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.Partner;
+import entity.Reservation;
 import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
@@ -20,6 +21,7 @@ import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
 import util.exceptions.PartnerExistException;
 import util.exceptions.PartnerNotFoundException;
+import util.exceptions.ReservationNotFoundException;
 import util.exceptions.UnknownPersistenceException;
 
 @Stateless
@@ -118,6 +120,34 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
     @Override
     public List<Partner> viewAllPartners() {
         return em.createQuery("SELECT p FROM Partner p", Partner.class).getResultList();
+    }
+    
+    @Override
+    public List<Reservation> retrieveReservationsByPartnerId(Long partnerId) {
+
+        Query query = em.createQuery("SELECT r FROM Reservation r WHERE r.partner.partnerId = :partnerId");
+        query.setParameter("partnerId", partnerId);
+
+        List<Reservation> reservations = (List<Reservation>) query.getResultList();
+
+        reservations.size();
+
+        return reservations;	
+
+    }
+    
+    @Override
+    public Reservation getPartnerReservationsByReservationId(Long reservationId) throws ReservationNotFoundException {
+         Reservation reservation = em.find(Reservation.class, reservationId);
+        
+        if(reservation != null)
+        {
+            return reservation;
+        }
+        else
+        {
+            throw new ReservationNotFoundException("Reservation ID " + reservationId + " does not exist!");
+        }               
     }
 
 }

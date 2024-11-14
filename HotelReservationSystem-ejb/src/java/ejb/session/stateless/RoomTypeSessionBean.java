@@ -1,5 +1,7 @@
 package ejb.session.stateless;
 
+import entity.Reservation;
+import entity.Room;
 import entity.RoomType;
 import java.util.Date;
 import java.util.Set;
@@ -71,6 +73,16 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
     }
     
     @Override
+    public RoomType retrieveRoomTypeByName(String name) throws RoomTypeNotFoundException {
+        RoomType roomType = em.find(RoomType.class, name);
+        if(roomType != null) {
+            return roomType;
+        } else {
+            throw new RoomTypeNotFoundException("RoomType id " + name.toString() + " does not exist!");
+        }
+    }
+    
+    @Override
     @Transactional
     public RoomType updateRoomType(Long roomTypeId, RoomType updatedRoomType) throws RoomTypeNotFoundException, RoomTypeUpdateException {
         RoomType roomType = em.find(RoomType.class, roomTypeId);
@@ -134,5 +146,16 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
         availableRoomTypes.forEach(em::detach);  
         return availableRoomTypes;
     }
+    
+
+       
+    
+    
+//     @Override
+//    public List<RoomType> searchAvailableRoomTypeForReservation(Date checkinDate, Date checkoutDate, Integer numberOfRooms) throws NoRoomTypeAvaiableForReservationException, RoomTypeNotFoundException {
+//       List<RoomType> roomTypeToReturn = new ArrayList<>();
+//       
+//    }
+    
 
 }

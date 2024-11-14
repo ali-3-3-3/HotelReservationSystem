@@ -25,5 +25,7 @@ public interface RoomTypeSessionBeanRemote {
     public List<RoomType> getAllRoomTypes();
 
     public List<RoomType> retrieveAvailableRooms(Date checkInDate, Date checkOutDate) throws RoomTypeNotFoundException;
+
+    public RoomType retrieveRoomTypeByName(String name) throws RoomTypeNotFoundException;
     
 }

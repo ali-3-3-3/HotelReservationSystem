@@ -1,5 +1,6 @@
 package ejb.session.stateless;
 
+import entity.Guest;
 import entity.Reservation;
 import entity.Room;
 import entity.RoomRate;
@@ -25,16 +26,24 @@ import javax.validation.ValidatorFactory;
 import util.enumerations.RateTypeEnum;
 import util.enumerations.RoomStatusEnum;
 import util.exceptions.CustomerNotFoundException;
+import util.exceptions.GuestNotFoundException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationDeleteException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
+import util.exceptions.RoomTypeNotFoundException;
 import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
 @Stateless
 public class ReservationSessionBean implements ReservationSessionBeanRemote, ReservationSessionBeanLocal {
+
+    @EJB(name = "GuestSessionBeanLocal")
+    private GuestSessionBeanLocal guestSessionBeanLocal;
+
+    @EJB(name = "RoomTypeSessionBeanLocal")
+    private RoomTypeSessionBeanLocal roomTypeSessionBeanLocal;
 
     @EJB
     private CustomerSessionBeanLocal customerSessionBean;
@@ -77,6 +86,8 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
             }
         }
     }
+    
+   
     
     @Override
     @Transactional
