@@ -2,9 +2,7 @@ package hotelreservationsystemreservationclient;
 
 import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.ReservationSessionBeanRemote;
-import ejb.session.stateless.RoomRateSessionBeanRemote;
 import ejb.session.stateless.RoomSessionBeanRemote;
-import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
 import entity.Reservation;
 import entity.RoomAllocation;
@@ -30,8 +28,6 @@ class MainApp {
     private CustomerSessionBeanRemote customerSessionBeanRemote;
     private ReservationSessionBeanRemote reservationSessionBeanRemote;
     private RoomSessionBeanRemote roomSessionBeanRemote;
-    private RoomRateSessionBeanRemote roomRateSessionBeanRemote;
-    private RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
     
     private boolean login = false;
     private Customer currentCustomer;
@@ -42,13 +38,11 @@ class MainApp {
         this.scanner = new Scanner(System.in);
     }
 
-    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote, RoomRateSessionBeanRemote roomRateSessionBeanRemote, RoomTypeSessionBeanRemote roomTypeSessionBeanRemote) {
+    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote) {
         this.scanner = new Scanner(System.in);
         this.customerSessionBeanRemote = customerSessionBeanRemote;
         this.reservationSessionBeanRemote = reservationSessionBeanRemote;
         this.roomSessionBeanRemote = roomSessionBeanRemote;
-        this.roomRateSessionBeanRemote = roomRateSessionBeanRemote;
-        this.roomTypeSessionBeanRemote = roomTypeSessionBeanRemote;
     }
 
     public void runApp() {
@@ -77,7 +71,6 @@ class MainApp {
                         try {
                             doLogin();
                             System.out.println("Login successful!");
-                            showCustomerMenu();
                         } catch (InvalidLoginCredentialException ex) {
                             System.out.println("Invalid login credential: " + ex.getMessage());
                         }
@@ -136,34 +129,6 @@ class MainApp {
         currentCustomer = null;
         login = false;
         System.out.println("Logout successful!" );
-    }
-
-    public void showCustomerMenu() {
-        response = 0;
-        
-        System.out.println("1: Reserve Hotel Room!");
-        System.out.println("2: View all my reservations");
-        System.out.println("3: Logout");
-        System.out.print("> ");
-        
-        response = scanner.nextInt();
-        scanner.nextLine();
-        
-        switch (response) {
-            case 1:
-                searchHotelRooms();
-                break;
-            case 2:
-                break;
-            case 3:
-                doLogout();
-                break;
-            default:
-                System.out.println("Invalid option, please try again!\n");
-                break;
-        }
-        
-        
     }
 
     public void doRegister() throws InputDataValidationException, UnknownPersistenceException, CustomerExistException {
@@ -304,63 +269,71 @@ class MainApp {
             return null;
         }
 
+        // Verify RoomType and currentCustomer are initialized
+        if (roomType == null) {
+            System.out.println("Error: Room type not selected. Please select a valid room type.");
+            return null;
+        }
+
+        if (currentCustomer == null || currentCustomer.getGuestId() == null) {
+            System.out.println("Error: No customer logged in. Please log in to make a reservation.");
+            return null;
+        }
+
         try {
             Long customerId = currentCustomer.getGuestId();
-            Reservation reservation = reservationSessionBeanRemote.createReservationFromSearch(customerId, roomType, checkInDate, checkOutDate, roomCount);
 
-            System.out.println("Reservation successfully created!");
-            System.out.println("Reservation Details:");
-            System.out.println("Room Type: " + roomType.getName());
-            System.out.println("Check-in Date: " + checkInDate);
-            System.out.println("Check-out Date: " + checkOutDate);
-            System.out.println("Number of Rooms: " + roomCount);
+            Reservation reservation = reservationSessionBeanRemote.createReservationFromSearch(
+                    customerId, roomType, checkInDate, checkOutDate, roomCount);
+
+            if (reservation != null) {
+                System.out.println("Reservation successfully created!");
+                System.out.println("Reservation Details:");
+                System.out.println("Room Type: " + roomType.getName());
+                System.out.println("Check-in Date: " + checkInDate);
+                System.out.println("Check-out Date: " + checkOutDate);
+                System.out.println("Number of Rooms: " + roomCount);
+            } else {
+                System.out.println("Reservation creation failed. Please try again.");
+            }
 
             return reservation;
-        } catch (InputDataValidationException | InvalidRoomCountException | RoomTypeUnavailableException | UnknownPersistenceException ex) {
-            System.out.println("An unexpected error occurred while creating the reservation: " + ex.getMessage());
+
+        } catch (InputDataValidationException ex) {
+            System.out.println("Data validation error: " + ex.getMessage());
+        } catch (InvalidRoomCountException ex) {
+            System.out.println("Invalid room count: " + ex.getMessage());
+        } catch (RoomTypeUnavailableException ex) {
+            System.out.println("Room type unavailable: " + ex.getMessage());
+        } catch (UnknownPersistenceException ex) {
+            System.out.println("Persistence error: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("An unexpected error occurred: " + ex.getMessage());
+            ex.printStackTrace();  
         }
 
         return null;
     }
 
+
     private void viewReservations() {
-        List<Reservation> reservations = currentCustomer.getReservations();
-        
-        reservations.stream().map(reservation -> {
+        List<Reservation> reservations = customerSessionBeanRemote.getReservationsForCustomer(currentCustomer.getGuestId());
+
+        reservations.forEach(reservation -> {
             System.out.println("Reservation ID: " + reservation.getReservationId());
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Reservation Date: " + formatDate(reservation.getReservationDate()));
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Check-In Date: " + formatDate(reservation.getCheckInDate()));
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Check-Out Date: " + formatDate(reservation.getCheckOutDate()));
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Check-In Time: " + formatTime(reservation.getCheckInTime()));
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Check-Out Time: " + formatTime(reservation.getCheckOutTime()));
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Has Checked In: " + reservation.isHasCheckedIn());
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Has Checked Out: " + reservation.isHasCheckedOut());
-            return reservation;
-        }).map(reservation -> {
             System.out.println("Number of Rooms: " + reservation.getNumOfRooms());
-            return reservation;
-        }).map(reservation -> {
+            System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFee(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation));
+
             RoomType roomType = reservation.getRoomType();
-            if (roomType != null) {
-                System.out.println("Room Type: " + roomType.getName());
-            } else {
-                System.out.println("Room Type: Not specified");
-            }
-            // Print room rates if available
+            System.out.println("Room Type: " + (roomType != null ? roomType.getName() : "Not specified"));
+
             Set<RoomRate> roomRates = reservation.getRoomRates();
             if (roomRates != null && !roomRates.isEmpty()) {
                 System.out.println("Room Rates:");
@@ -370,10 +343,8 @@ class MainApp {
             } else {
                 System.out.println("Room Rates: Not specified");
             }
-            // Print room allocations if available
+
             List<RoomAllocation> roomAllocations = reservation.getRoomAllocations();
-            return roomAllocations;
-        }).map(roomAllocations -> {
             if (roomAllocations != null && !roomAllocations.isEmpty()) {
                 System.out.println("Room Allocations:");
                 roomAllocations.forEach(allocation -> {
@@ -382,13 +353,10 @@ class MainApp {
             } else {
                 System.out.println("Room Allocations: Not specified");
             }
-            return roomAllocations;
-        }).forEachOrdered(_item -> {
             System.out.println("-------------------------------------------------");
         });
-        
     }
-    
+
     // Helper methods for date and time formatting
     private String formatDate(Date date) {
         return date != null ? new SimpleDateFormat("yyyy-MM-dd").format(date) : "Not specified";

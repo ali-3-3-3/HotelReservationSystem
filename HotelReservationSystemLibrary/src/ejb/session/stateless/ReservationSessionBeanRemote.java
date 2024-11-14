@@ -31,5 +31,7 @@ public interface ReservationSessionBeanRemote {
     public List<Reservation> retrieveReservationsByGuestId(Long guestId);
 
     public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException;
+
+    public double calculateTotalReservationFee(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation);
     
 }

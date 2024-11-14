@@ -2,8 +2,11 @@ package ejb.session.stateless;
 
 import entity.Reservation;
 import entity.Room;
+import entity.RoomRate;
 import entity.RoomType;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -75,6 +78,7 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
     }
     
     @Override
+    @Transactional
     public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) 
         throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
     
@@ -131,6 +135,7 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
             reservation.setGuest(updatedReservation.getGuest());
             reservation.setPartner(updatedReservation.getPartner());
             reservation.setRoomType(updatedReservation.getRoomType());
+            reservation.setRoomRates(updatedReservation.getRoomRates());
 
             em.merge(reservation);
             return reservation;
@@ -172,4 +177,67 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         return query.getResultList();
     }
     
+    @Override
+    @Transactional
+    public double calculateTotalReservationFee(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation) {
+        double totalFee = 0.0;
+        Date currentDate = checkInDate;
+
+        reservation.setRoomRates(new HashSet<>()); 
+
+        while (!currentDate.after(checkOutDate)) {
+            RoomRate dailyRate = getDailyRateForRoomType(currentDate, roomType);
+            if (dailyRate != null) {
+                totalFee += dailyRate.getRatePerNight();
+                reservation.getRoomRates().add(dailyRate);
+            }
+            currentDate = getNextDate(currentDate);
+        }
+        
+        try {
+            updateReservation(reservation.getReservationId(), reservation);
+        } catch (ReservationNotFoundException | ReservationUpdateException ex) {
+            Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return totalFee;
+    }
+
+    private RoomRate getDailyRateForRoomType(Date date, RoomType roomType) {
+        RoomRate selectedRate = null;
+        double highestPriorityRate = 0.0;
+
+        List<RoomRate> roomRates = roomType.getRoomRates();
+
+        // Prioritize Promotion Rate > Peak Rate > Normal Rate > Published Rate
+        for (RoomRate rate : roomRates) {
+            if (isDateWithinRange(date, rate.getStartDate(), rate.getEndDate())) {
+                switch (rate.getRateType()) {
+                    case PROMOTION:
+                        return rate;
+                    case PEAK:
+                        if (highestPriorityRate == 0) selectedRate = rate;
+                        break;
+                    case NORMAL:
+                        if (selectedRate == null || highestPriorityRate < 2) selectedRate = rate;
+                        break;
+                    case PUBLISHED:
+                        if (selectedRate == null) selectedRate = rate;
+                        break;
+                }
+            }
+        }
+        return selectedRate;
+    }
+
+    private boolean isDateWithinRange(Date date, Date startDate, Date endDate) {
+        return (date.equals(startDate) || date.after(startDate)) && (date.equals(endDate) || date.before(endDate));
+    }
+
+    private Date getNextDate(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DATE, 1);
+        return calendar.getTime();
+    }
 }
