@@ -10,6 +10,7 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -86,6 +87,18 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
         } catch (NoResultException | NonUniqueResultException ex) {
             throw new EmployeeNotFoundException("Employee does not exist!");
         }
+    }
+    
+    @Override
+    public List<Employee> retrieveAllEmployees() throws EmployeeNotFoundException {
+        TypedQuery<Employee> query = em.createQuery("SELECT e FROM Employee e", Employee.class);
+        List<Employee> employees = query.getResultList();
+        
+        if (employees.isEmpty()) {
+            throw new EmployeeNotFoundException("No employees found.");
+        }
+        
+        return employees;
     }
     
     @Override

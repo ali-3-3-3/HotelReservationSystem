@@ -10,6 +10,7 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -86,6 +87,18 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
         } else {
             throw new PartnerNotFoundException("Partner id " + id.toString() + " does not exist!");
         }
+    }
+    
+    @Override
+    public List<Partner> retrieveAllPartners() throws PartnerNotFoundException {
+        TypedQuery<Partner> query = em.createQuery("SELECT p FROM Partner p", Partner.class);
+        List<Partner> partners = query.getResultList();
+        
+        if (partners.isEmpty()) {
+            throw new PartnerNotFoundException("No partners found.");
+        }
+        
+        return partners;
     }
 
     @Override

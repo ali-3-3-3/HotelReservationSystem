@@ -20,5 +20,7 @@ public interface EmployeeSessionBeanLocal {
     public Employee doLogin(String email, String password) throws InvalidLoginCredentialException;
     
     public List<Employee> viewAllEmployees();
+    
+    public List<Employee> retrieveAllEmployees() throws EmployeeNotFoundException;
 }   
 

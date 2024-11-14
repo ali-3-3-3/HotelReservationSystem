@@ -4,6 +4,7 @@ import ejb.session.stateless.AllocationExceptionSessionBeanRemote;
 import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.GuestSessionBeanRemote;
+import ejb.session.stateless.PartnerSessionBeanRemote;
 import ejb.session.stateless.ReservationSessionBeanRemote;
 import ejb.session.stateless.RoomAllocationSessionBeanRemote;
 import ejb.session.stateless.RoomRateSessionBeanRemote;
@@ -19,6 +20,7 @@ class MainApp {
     private AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
     private GuestSessionBeanRemote guestSessionBeanRemote;
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    private PartnerSessionBeanRemote partnerSessionBeanRemote;
     private ReservationSessionBeanRemote reservationSessionBeanRemote;
     private RoomSessionBeanRemote roomSessionBeanRemote;
     private RoomRateSessionBeanRemote roomRateSessionBeanRemote;
@@ -31,6 +33,7 @@ class MainApp {
     public MainApp(AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote, 
                    GuestSessionBeanRemote guestSessionBeanRemote, 
                    EmployeeSessionBeanRemote employeeSessionBeanRemote, 
+                   PartnerSessionBeanRemote partnerSessionBeanRemote,
                    ReservationSessionBeanRemote reservationSessionBeanRemote, 
                    RoomSessionBeanRemote roomSessionBeanRemote, 
                    RoomRateSessionBeanRemote roomRateSessionBeanRemote, 
@@ -39,6 +42,7 @@ class MainApp {
         this.allocationExceptionSessionBeanRemote = allocationExceptionSessionBeanRemote;
         this.guestSessionBeanRemote = guestSessionBeanRemote;
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
+        this.partnerSessionBeanRemote = partnerSessionBeanRemote;
         this.reservationSessionBeanRemote = reservationSessionBeanRemote;
         this.roomSessionBeanRemote = roomSessionBeanRemote;
         this.roomRateSessionBeanRemote = roomRateSessionBeanRemote;
@@ -112,7 +116,7 @@ class MainApp {
 
         switch (currentRole) {
             case SYSTEMADMINISTRATOR:
-                new SystemAdministrationModule().showMenu(currentEmployee);
+                new SystemAdministrationModule(employeeSessionBeanRemote, partnerSessionBeanRemote).showMenu(currentEmployee);
                 break;
             case OPERATIONMANAGER:
                 new HotelOperationModule().showOperationManagerMenu(currentEmployee);
