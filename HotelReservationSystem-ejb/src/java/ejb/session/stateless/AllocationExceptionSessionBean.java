@@ -117,4 +117,10 @@ public class AllocationExceptionSessionBean implements AllocationExceptionSessio
         query.setParameter("employeeId", employeeId);
         return query.getResultList();
     }
+    
+    @Override
+    public List<AllocationException> viewAllAllocationExceptions() {
+        return em.createQuery("SELECT a FROM AllocationException a", AllocationException.class).getResultList();
+    }
+
 }

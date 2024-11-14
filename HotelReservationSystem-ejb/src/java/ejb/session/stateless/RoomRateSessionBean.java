@@ -1,11 +1,13 @@
 package ejb.session.stateless;
 
 import entity.RoomRate;
+import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -95,5 +97,11 @@ public class RoomRateSessionBean implements RoomRateSessionBeanRemote, RoomRateS
         } catch (PersistenceException ex) {
             throw new RoomRateDeleteException("Failed to delete RoomRate: " + ex.getMessage());
         }
+    }
+    
+    @Override
+    public List<RoomRate> retrieveAllRoomRates() {
+        Query query = em.createQuery("SELECT rr FROM RoomRate rr");
+        return query.getResultList();
     }
 }

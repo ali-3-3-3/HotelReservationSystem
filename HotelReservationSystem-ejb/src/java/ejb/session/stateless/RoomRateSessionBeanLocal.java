@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.RoomRate;
+import java.util.List;
 import javax.ejb.Local;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.RoomRateDeleteException;
@@ -18,4 +19,6 @@ public interface RoomRateSessionBeanLocal {
     public RoomRate updateRoomRate(Long roomRateId, RoomRate updatedRoomRate) throws RoomRateNotFoundException, RoomRateUpdateException;
 
     public void deleteRoomRate(Long roomRateId) throws RoomRateNotFoundException, RoomRateDeleteException;
+
+    public List<RoomRate> retrieveAllRoomRates();
 }

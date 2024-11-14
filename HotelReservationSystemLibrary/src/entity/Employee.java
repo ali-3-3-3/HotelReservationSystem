@@ -12,8 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import util.enumerations.EmployeeRoleEnum;
 import util.exceptions.EmployeeAddExceptionException;
@@ -40,7 +40,7 @@ public class Employee implements Serializable {
     private EmployeeRoleEnum UserRole;
     
     @Column (length = 64, nullable = false, unique = true)
-    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "Invalid email format")
+    @Email
     @NotNull
     private String email;
     

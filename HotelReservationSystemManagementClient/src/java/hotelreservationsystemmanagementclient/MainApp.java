@@ -1,7 +1,6 @@
 package hotelreservationsystemmanagementclient;
 
 import ejb.session.stateless.AllocationExceptionSessionBeanRemote;
-import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.GuestSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
@@ -13,19 +12,20 @@ import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Employee;
 import java.util.Scanner;
 import util.enumerations.EmployeeRoleEnum;
+import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
 
 class MainApp {
     
-    private AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
-    private GuestSessionBeanRemote guestSessionBeanRemote;
-    private EmployeeSessionBeanRemote employeeSessionBeanRemote;
-    private PartnerSessionBeanRemote partnerSessionBeanRemote;
-    private ReservationSessionBeanRemote reservationSessionBeanRemote;
-    private RoomSessionBeanRemote roomSessionBeanRemote;
-    private RoomRateSessionBeanRemote roomRateSessionBeanRemote;
-    private RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
-    private RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
+    private final AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
+    private final GuestSessionBeanRemote guestSessionBeanRemote;
+    private final EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    private final PartnerSessionBeanRemote partnerSessionBeanRemote;
+    private final ReservationSessionBeanRemote reservationSessionBeanRemote;
+    private final RoomSessionBeanRemote roomSessionBeanRemote;
+    private final RoomRateSessionBeanRemote roomRateSessionBeanRemote;
+    private final RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
+    private final RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
     
     private Employee currentEmployee = null;
     private final Scanner scanner;
@@ -48,7 +48,7 @@ class MainApp {
         this.roomRateSessionBeanRemote = roomRateSessionBeanRemote;
         this.roomTypeSessionBeanRemote = roomTypeSessionBeanRemote;
         this.roomAllocationSessionBeanRemote = roomAllocationSessionBeanRemote;
-        this.scanner = new Scanner(System.in); // Initialize scanner once
+        this.scanner = new Scanner(System.in);
     }
 
     public void runApp() {
@@ -76,14 +76,14 @@ class MainApp {
                         System.out.println("Invalid option, please try again!\n");
                         break;
                 }
-            }catch (Exception ex) {
+            }catch (InputDataValidationException ex) {
                 System.out.println("An unexpected error occurred: " + ex.getMessage());
             }
         }
         scanner.close();
     }
 
-    private void handleLogin() {
+    private void handleLogin() throws InputDataValidationException {
         try {
             System.out.println("*** Hotel Reservation System Management Client :: LOGIN ***\n");
             System.out.print("Enter username> ");
@@ -109,7 +109,7 @@ class MainApp {
         System.out.println("Logout successful!");
     }
 
-    private void showMenu() {
+    private void showMenu() throws InputDataValidationException {
         if (currentEmployee == null) return;
 
         EmployeeRoleEnum currentRole = currentEmployee.getUserRole();
@@ -119,10 +119,10 @@ class MainApp {
                 new SystemAdministrationModule(employeeSessionBeanRemote, partnerSessionBeanRemote).showMenu(currentEmployee);
                 break;
             case OPERATIONMANAGER:
-                new HotelOperationModule().showOperationManagerMenu(currentEmployee);
+                new HotelOperationModule(roomAllocationSessionBeanRemote, roomTypeSessionBeanRemote, roomSessionBeanRemote, allocationExceptionSessionBeanRemote, roomRateSessionBeanRemote).showOperationManagerMenu(currentEmployee);
                 break;
             case SALESMANAGER:
-                new HotelOperationModule().showSalesManagerMenu(currentEmployee);
+                new HotelOperationModule(roomAllocationSessionBeanRemote, roomTypeSessionBeanRemote, roomSessionBeanRemote, allocationExceptionSessionBeanRemote, roomRateSessionBeanRemote).showSalesManagerMenu(currentEmployee);
                 break;
             case GUESTRELATIONOFFICER:
                 new FrontOfficeModule(reservationSessionBeanRemote, roomSessionBeanRemote, guestSessionBeanRemote, roomAllocationSessionBeanRemote, currentEmployee).showMenu();

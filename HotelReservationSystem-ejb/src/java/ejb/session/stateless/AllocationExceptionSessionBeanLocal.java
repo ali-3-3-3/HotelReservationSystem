@@ -25,4 +25,5 @@ public interface AllocationExceptionSessionBeanLocal {
 
     public List<AllocationException> retrieveAllocationExceptionsByEmployeeId(Long employeeId);
     
+    public List<AllocationException> viewAllAllocationExceptions();
 }
