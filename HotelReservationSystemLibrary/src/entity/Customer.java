@@ -18,7 +18,7 @@ public class Customer extends Guest implements Serializable {
     private String username;
     
     @Column (length = 20, nullable = false)
-    @Size(min = 8, max = 20)
+    @Size(min = 5, max = 20)
     @NotNull
     private String password;
 
@@ -26,7 +26,7 @@ public class Customer extends Guest implements Serializable {
         super();
     }
 
-    public Customer(String username, String password, String name, String email, String phoneNumber) {
+    public Customer(String name, String email, String phoneNumber, String username, String password) {
         super(name, email, phoneNumber);
         this.username = username;
         this.password = password;

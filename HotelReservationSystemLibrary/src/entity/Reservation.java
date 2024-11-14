@@ -78,14 +78,14 @@ public class Reservation implements Serializable {
     @NotNull
     private RoomType roomType;
     
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "reservation_roomRate",
         joinColumns = @JoinColumn(name = "reservationId"),
         inverseJoinColumns = @JoinColumn(name = "roomRateId"))
     private Set<RoomRate> roomRates;
 
-    @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.EAGER)
     private List<RoomAllocation> roomAllocations;
     
     public Reservation() {
