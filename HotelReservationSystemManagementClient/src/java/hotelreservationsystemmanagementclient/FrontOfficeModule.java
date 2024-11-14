@@ -11,6 +11,7 @@ import entity.Reservation;
 import entity.RoomType;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -96,11 +97,12 @@ public class FrontOfficeModule {
 
     private void doCheckInGuest() {
         System.out.println("*** Hotel Reservation System :: Front Office Module :: Check-In Guest ***\n");
-        System.out.print("Enter Reservation ID> ");
-        Long reservationId = scanner.nextLong();
-        scanner.nextLine(); 
 
         try {
+            System.out.print("Enter Reservation ID> ");
+            Long reservationId = scanner.nextLong();
+            scanner.nextLine(); 
+
             Reservation reservation = reservationSessionBeanRemote.retrieveReservationById(reservationId);
 
             if (reservation.isHasCheckedIn()) {
@@ -111,20 +113,24 @@ public class FrontOfficeModule {
                 System.out.println("Guest check-in successful!\n");
             }
         } catch (ReservationNotFoundException ex) {
-            System.out.println("An error occurred: Reservation with ID " + reservationId + " not found.\n");
+            System.out.println("An error occurred: Reservation with the specified ID was not found.\n");
         } catch (ReservationUpdateException ex) {
-            Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("An error occurred while updating the reservation. Please try again.\n");
+            Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, "Error updating reservation", ex);
+        } catch (InputMismatchException ex) {
+            System.out.println("Invalid input: Please enter a valid numeric Reservation ID.\n");
+            scanner.nextLine(); // Clear invalid input from scanner
         }
     }
 
     private void doCheckOutGuest() {
         System.out.println("*** Hotel Reservation System :: Front Office Module :: Check-Out Guest ***\n");
-        System.out.print("Enter Reservation ID> ");
-        Long reservationId = scanner.nextLong();
-        scanner.nextLine(); 
 
         try {
+            System.out.print("Enter Reservation ID> ");
+            Long reservationId = scanner.nextLong();
+            scanner.nextLine(); 
+
             Reservation reservation = reservationSessionBeanRemote.retrieveReservationById(reservationId);
 
             if (reservation.isHasCheckedOut()) {
@@ -135,12 +141,16 @@ public class FrontOfficeModule {
                 System.out.println("Guest check-out successful!\n");
             }
         } catch (ReservationNotFoundException ex) {
-            System.out.println("An error occurred: Reservation with ID " + reservationId + " not found.\n");
+            System.out.println("An error occurred: Reservation with the specified ID was not found.\n");
         } catch (ReservationUpdateException ex) {
-            Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("An error occurred while updating the reservation. Please try again.\n");
+            Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, "Error updating reservation", ex);
+        } catch (InputMismatchException ex) {
+            System.out.println("Invalid input: Please enter a valid numeric Reservation ID.\n");
+            scanner.nextLine(); 
         }
     }
+
 
     public void searchHotelRooms() {
         Guest currentCustomer = null;

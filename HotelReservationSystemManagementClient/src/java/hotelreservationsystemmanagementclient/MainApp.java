@@ -17,15 +17,15 @@ import util.exceptions.InvalidLoginCredentialException;
 
 class MainApp {
     
-    private AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
-    private GuestSessionBeanRemote guestSessionBeanRemote;
-    private EmployeeSessionBeanRemote employeeSessionBeanRemote;
-    private PartnerSessionBeanRemote partnerSessionBeanRemote;
-    private ReservationSessionBeanRemote reservationSessionBeanRemote;
-    private RoomSessionBeanRemote roomSessionBeanRemote;
-    private RoomRateSessionBeanRemote roomRateSessionBeanRemote;
-    private RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
-    private RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
+    private final AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
+    private final GuestSessionBeanRemote guestSessionBeanRemote;
+    private final EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    private final PartnerSessionBeanRemote partnerSessionBeanRemote;
+    private final ReservationSessionBeanRemote reservationSessionBeanRemote;
+    private final RoomSessionBeanRemote roomSessionBeanRemote;
+    private final RoomRateSessionBeanRemote roomRateSessionBeanRemote;
+    private final RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
+    private final RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
     
     private Employee currentEmployee = null;
     private final Scanner scanner;
@@ -48,7 +48,7 @@ class MainApp {
         this.roomRateSessionBeanRemote = roomRateSessionBeanRemote;
         this.roomTypeSessionBeanRemote = roomTypeSessionBeanRemote;
         this.roomAllocationSessionBeanRemote = roomAllocationSessionBeanRemote;
-        this.scanner = new Scanner(System.in); // Initialize scanner once
+        this.scanner = new Scanner(System.in);
     }
 
     public void runApp() {

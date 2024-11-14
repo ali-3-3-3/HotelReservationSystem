@@ -68,26 +68,70 @@ public class SystemAdministrationModule {
     private void createNewEmployee() {
         System.out.println("Enter employee details:");
 
-        System.out.print("Email: ");
-        String email = scanner.nextLine().trim();
+        String email;
+        String username;
+        String password;
+        EmployeeRoleEnum role;
 
-        System.out.print("Username: ");
-        String username = scanner.nextLine().trim();
+        // Email validation loop
+        while (true) {
+            System.out.print("Email: ");
+            email = scanner.nextLine().trim();
+            if (email.isEmpty()) {
+                System.out.println("Error: Email cannot be empty. Please try again.");
+            } else {
+                break;
+            }
+        }
 
-        System.out.print("Password: ");
-        String password = scanner.nextLine().trim();
+        // Username validation loop
+        while (true) {
+            System.out.print("Username: ");
+            username = scanner.nextLine().trim();
+            if (username.isEmpty()) {
+                System.out.println("Error: Username cannot be empty. Please try again.");
+            } else {
+                break;
+            }
+        }
 
-        System.out.print("Role (SYSTEMADMINISTRATOR/OPERATIONMANAGER/SALESMANAGER/GUESTRELATIONOFFICER): ");
-        String role = scanner.nextLine().trim();
+        // Password validation loop
+        while (true) {
+            System.out.print("Password: ");
+            password = scanner.nextLine().trim();
+            if (password.isEmpty()) {
+                System.out.println("Error: Password cannot be empty. Please try again.");
+            } else {
+                break;
+            }
+        }
 
+        // Role validation loop
+        while (true) {
+            System.out.print("Role (SYSTEMADMINISTRATOR/OPERATIONMANAGER/SALESMANAGER/GUESTRELATIONOFFICER): ");
+            String roleInput = scanner.nextLine().trim().toUpperCase();
+            try {
+                role = EmployeeRoleEnum.valueOf(roleInput);
+                break; // Exit loop if role is valid
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Error: Invalid role. Please enter one of the following: SYSTEMADMINISTRATOR, OPERATIONMANAGER, SALESMANAGER, GUESTRELATIONOFFICER.");
+            }
+        }
+
+        // Attempt to create the employee
         try {
-            Employee newEmployee = new Employee(username, password, EmployeeRoleEnum.valueOf(role), email);
+            Employee newEmployee = new Employee(username, password, role, email);
             employeeSessionBeanRemote.createNewEmployee(newEmployee);
             System.out.println("Employee created successfully!");
-        } catch (EmployeeExistException | InputDataValidationException | UnknownPersistenceException ex) {
-            System.out.println("Error occurred while creating employee: " + ex.getMessage());
+        } catch (EmployeeExistException ex) {
+            System.out.println("Error: Employee with this email or username already exists.");
+        } catch (InputDataValidationException ex) {
+            System.out.println("Error: Invalid data provided. Please check all fields and try again.");
+        } catch (UnknownPersistenceException ex) {
+            System.out.println("An unknown error occurred while creating the employee. Please contact support.");
         }
     }
+
 
     private void viewAllEmployees() {
         try {
@@ -104,23 +148,57 @@ public class SystemAdministrationModule {
     private void createNewPartner() {
         System.out.println("Enter partner details:");
 
-        System.out.print("Partner System Name: ");
-        String partnerName = scanner.nextLine().trim();
+        String partnerName;
+        String partnerContact;
+        String partnerPassword;
 
-        System.out.print("Partner Email: ");
-        String partnerContact = scanner.nextLine().trim();
-        
-        System.out.print("Partner Password: ");
-        String partnerPassword = scanner.nextLine().trim();
+        // Partner name validation loop
+        while (true) {
+            System.out.print("Partner System Name: ");
+            partnerName = scanner.nextLine().trim();
+            if (partnerName.isEmpty()) {
+                System.out.println("Error: Partner name cannot be empty. Please enter a valid name.");
+            } else {
+                break;
+            }
+        }
 
+        // Partner email/contact validation loop
+        while (true) {
+            System.out.print("Partner Email: ");
+            partnerContact = scanner.nextLine().trim();
+            if (partnerContact.isEmpty()) {
+                System.out.println("Error: Partner email cannot be empty. Please enter a valid email.");
+            } else {
+                break;
+            }
+        }
+
+        // Partner password validation loop
+        while (true) {
+            System.out.print("Partner Password: ");
+            partnerPassword = scanner.nextLine().trim();
+            if (partnerPassword.isEmpty()) {
+                System.out.println("Error: Password cannot be empty. Please enter a valid password.");
+            } else {
+                break;
+            }
+        }
+
+        // Attempt to create the partner
         try {
             Partner newPartner = new Partner(partnerName, partnerContact, partnerPassword);
             partnerSessionBeanRemote.createNewPartner(newPartner);
             System.out.println("Partner created successfully!");
-        } catch (InputDataValidationException | PartnerExistException | UnknownPersistenceException ex) {
-            System.out.println("Error occurred while creating partner: " + ex.getMessage());
+        } catch (PartnerExistException ex) {
+            System.out.println("Error: A partner with this name or email already exists. Please use a different name or email.");
+        } catch (InputDataValidationException ex) {
+            System.out.println("Error: Invalid data provided. Please ensure all fields are correctly filled.");
+        } catch (UnknownPersistenceException ex) {
+            System.out.println("An unexpected error occurred while creating the partner. Please try again later or contact support.");
         }
     }
+
 
     private void viewAllPartners() {
         try {
