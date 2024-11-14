@@ -33,7 +33,6 @@ public class AllocationException implements Serializable {
 
     @ManyToOne(optional = false, cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn(name = "employeeId", nullable = false)
-    @NotNull
     private Employee employee;
     
     @OneToOne(mappedBy = "exception", optional = false, fetch = FetchType.EAGER)
@@ -43,10 +42,9 @@ public class AllocationException implements Serializable {
     public AllocationException() {
     }
 
-    public AllocationException(String errorDescription, ResolutionStatusEnum resolutionStatus, Employee employee) {
+    public AllocationException(String errorDescription, ResolutionStatusEnum resolutionStatus) {
         this.errorDescription = errorDescription;
         this.resolutionStatus = resolutionStatus;
-        this.employee = employee;
     }
 
     public Long getExceptionId() {

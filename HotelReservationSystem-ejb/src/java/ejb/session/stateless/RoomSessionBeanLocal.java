@@ -25,4 +25,6 @@ public interface RoomSessionBeanLocal {
     public List<Room> viewAllRooms();
 
     public List<RoomType> searchAvailableRoomTypes(Date checkInDate, Date checkOutDate);
+    
+    public List<Room> retrieveAvailableRoomsByRoomType(RoomType roomType);
 }

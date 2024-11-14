@@ -20,4 +20,6 @@ public interface GuestSessionBeanRemote {
     public Guest updateGuest(Long guestId, String name, String email, String phoneNumber) throws GuestNotFoundException, InputDataValidationException;
 
     public void deleteGuest(Long guestId) throws GuestNotFoundException, GuestDeleteException;
+
+    public Guest retrieveGuestByEmail(String email) throws GuestNotFoundException;
 }

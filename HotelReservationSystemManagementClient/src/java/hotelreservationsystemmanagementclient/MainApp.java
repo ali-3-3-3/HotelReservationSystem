@@ -1,14 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package hotelreservationsystemmanagementclient;
 
 import ejb.session.stateless.AllocationExceptionSessionBeanRemote;
 import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.GuestSessionBeanRemote;
+import ejb.session.stateless.PartnerSessionBeanRemote;
 import ejb.session.stateless.ReservationSessionBeanRemote;
+import ejb.session.stateless.RoomAllocationSessionBeanRemote;
 import ejb.session.stateless.RoomRateSessionBeanRemote;
 import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
@@ -17,128 +15,138 @@ import java.util.Scanner;
 import util.enumerations.EmployeeRoleEnum;
 import util.exceptions.InvalidLoginCredentialException;
 
-/**
- *
- * @author aliya
- */
 class MainApp {
     
     private AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote;
     private GuestSessionBeanRemote guestSessionBeanRemote;
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    private PartnerSessionBeanRemote partnerSessionBeanRemote;
     private ReservationSessionBeanRemote reservationSessionBeanRemote;
     private RoomSessionBeanRemote roomSessionBeanRemote;
     private RoomRateSessionBeanRemote roomRateSessionBeanRemote;
     private RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
+    private RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
     
-    private boolean login = false;
     private Employee currentEmployee = null;
-    private int response = 0;
-    private Scanner scanner = new Scanner(System.in);
-    
-    public MainApp() {
-    }
+    private final Scanner scanner;
 
-    public MainApp(AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote, GuestSessionBeanRemote guestSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote, RoomRateSessionBeanRemote roomRateSessionBeanRemote, RoomTypeSessionBeanRemote roomTypeSessionBeanRemote) {
+    public MainApp(AllocationExceptionSessionBeanRemote allocationExceptionSessionBeanRemote, 
+                   GuestSessionBeanRemote guestSessionBeanRemote, 
+                   EmployeeSessionBeanRemote employeeSessionBeanRemote, 
+                   PartnerSessionBeanRemote partnerSessionBeanRemote,
+                   ReservationSessionBeanRemote reservationSessionBeanRemote, 
+                   RoomSessionBeanRemote roomSessionBeanRemote, 
+                   RoomRateSessionBeanRemote roomRateSessionBeanRemote, 
+                   RoomTypeSessionBeanRemote roomTypeSessionBeanRemote,
+                   RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote) {
         this.allocationExceptionSessionBeanRemote = allocationExceptionSessionBeanRemote;
         this.guestSessionBeanRemote = guestSessionBeanRemote;
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
+        this.partnerSessionBeanRemote = partnerSessionBeanRemote;
         this.reservationSessionBeanRemote = reservationSessionBeanRemote;
         this.roomSessionBeanRemote = roomSessionBeanRemote;
         this.roomRateSessionBeanRemote = roomRateSessionBeanRemote;
         this.roomTypeSessionBeanRemote = roomTypeSessionBeanRemote;
+        this.roomAllocationSessionBeanRemote = roomAllocationSessionBeanRemote;
+        this.scanner = new Scanner(System.in); // Initialize scanner once
     }
 
     public void runApp() {
-        while(true) {
-            System.out.println("*** Hotel Management System ***");
-            if(currentEmployee == null && login == false) {
-                System.out.println("1: Login");
-                System.out.println("2: Exit\n");   
-            } else {
-                System.out.println("1: Logout");
+        OUTER:
+        while (true) {
+            try {
+                System.out.println("*** Hotel Management System ***");
+                if (currentEmployee == null) {
+                    System.out.println("1: Login");
+                } else {
+                    System.out.println("1: Logout");
+                }
                 System.out.println("2: Exit\n");
-            }
-            
-            response = 0;
-            
-            while (response < 1 || response > 2) {    
-                System.out.println("> ");
-                response = scanner.nextInt();
-                
-                if(response == 1 && currentEmployee == null && login == false) {
-                    try {
-                        doLogin();
-                        System.out.println("Login successful!");
-                        showMenu();
-                    } catch (InvalidLoginCredentialException ex) {
-                        System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
-                    }
-                } 
-                else if(response == 1 && currentEmployee != null && login != false) {
-                    doLogout();
-                    System.out.println("Logout successful!");
-                } 
-                else if(response == 2) {
-                    break;
-                } 
-                else {
-                    System.out.println("Invalid option, please try again!\n");
-                }   
-            }
-            
-            if(response == 2) {
-                break;
+                int response = getUserInput();
+                switch (response) {
+                    case 1:
+                        if (currentEmployee == null) {
+                            handleLogin();
+                        } else {
+                            handleLogout();
+                        }   break;
+                    case 2:
+                        break OUTER;
+                    default:
+                        System.out.println("Invalid option, please try again!\n");
+                        break;
+                }
+            }catch (Exception ex) {
+                System.out.println("An unexpected error occurred: " + ex.getMessage());
             }
         }
+        scanner.close();
     }
-    
-    private void doLogin() throws InvalidLoginCredentialException {
-        Scanner sc = new Scanner(System.in) ;
-        System.out.println("*** Hotel Reservation System Management Client :: LOGIN ***\n");
-        System.out.print("Enter username> ");
-        String username = sc.nextLine().trim();
-        System.out.print("Enter password> ");
-        String password = sc.nextLine().trim();
-        
-        if(username.length() > 0 && password.length() > 0) {
+
+    private void handleLogin() {
+        try {
+            System.out.println("*** Hotel Reservation System Management Client :: LOGIN ***\n");
+            System.out.print("Enter username> ");
+            String username = scanner.nextLine().trim();
+            System.out.print("Enter password> ");
+            String password = scanner.nextLine().trim();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                System.out.println("Missing login credentials.");
+                return;
+            }
+
             currentEmployee = employeeSessionBeanRemote.doLogin(username, password);
-            login = true;
-        } else {
-            throw new InvalidLoginCredentialException("Missing Login Credentials");
+            System.out.println("Login successful!");
+            showMenu();
+        } catch (InvalidLoginCredentialException ex) {
+            System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
         }
     }
-    
-    public void doLogout() {
+
+    private void handleLogout() {
         currentEmployee = null;
-        login = false;
-        System.out.println("Logout successful!" );
+        System.out.println("Logout successful!");
     }
-    
-    public void showMenu() {
+
+    private void showMenu() {
+        if (currentEmployee == null) return;
+
         EmployeeRoleEnum currentRole = currentEmployee.getUserRole();
 
         switch (currentRole) {
             case SYSTEMADMINISTRATOR:
-                SystemAdministrationModule systemAdministrationModule = new SystemAdministrationModule();
-                systemAdministrationModule.showMenu(currentEmployee);
+                new SystemAdministrationModule(employeeSessionBeanRemote, partnerSessionBeanRemote).showMenu(currentEmployee);
                 break;
             case OPERATIONMANAGER:
-                HotelOperationModule hotelOperationModule1 = new HotelOperationModule();
-                hotelOperationModule1.showOperationManagerMenu(currentEmployee);
+                new HotelOperationModule().showOperationManagerMenu(currentEmployee);
                 break;
             case SALESMANAGER:
-                HotelOperationModule hotelOperationModule2 = new HotelOperationModule();
-                hotelOperationModule2.showSalesManagerMenu(currentEmployee);
+                new HotelOperationModule().showSalesManagerMenu(currentEmployee);
                 break;
             case GUESTRELATIONOFFICER:
-                FrontOfficeModule frontOfficeModule = new FrontOfficeModule();
-                frontOfficeModule.showMenu(currentEmployee);
+                new FrontOfficeModule(reservationSessionBeanRemote, roomSessionBeanRemote, guestSessionBeanRemote, roomAllocationSessionBeanRemote, currentEmployee).showMenu();
                 break;
             default:
                 System.out.println("Invalid role.");
-                doLogout();
+                handleLogout();
         }
     }
-    
+
+    private int getUserInput() {
+        int choice = 0;
+        while (true) {
+            System.out.print("> ");
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+                if (choice >= 1 && choice <= 2) {
+                    return choice;
+                } else {
+                    System.out.println("Please enter a valid option (1 or 2).");
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
 }

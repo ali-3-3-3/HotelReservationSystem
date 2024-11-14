@@ -30,7 +30,6 @@ public class RoomAllocation implements Serializable {
     
     @ManyToOne (optional = true, fetch = FetchType.EAGER)
     @JoinColumn (name = "roomId", nullable = true)
-    @NotNull
     private Room room;
     
     @ManyToOne (optional = false, fetch = FetchType.EAGER)
@@ -46,12 +45,10 @@ public class RoomAllocation implements Serializable {
         this.isException = false;
     }
 
-    public RoomAllocation(Date allocationDate, Room room, Reservation reservation) {
+    public RoomAllocation(Date allocationDate) {
         this();
         
         this.allocationDate = allocationDate;
-        this.room = room;
-        this.reservation = reservation;
     }
     
     public Long getAllocationId() {

@@ -1,10 +1,15 @@
 package ejb.session.stateless;
 
+import entity.Reservation;
 import entity.RoomAllocation;
 import java.util.List;
 import javax.ejb.Remote;
 import util.exceptions.InputDataValidationException;
+import util.exceptions.ReservationAddRoomAllocationException;
+import util.exceptions.ReservationNotFoundException;
+import util.exceptions.ReservationUpdateException;
 import util.exceptions.RoomAllocationDeleteException;
+import util.exceptions.RoomAllocationException;
 import util.exceptions.RoomAllocationNotFoundException;
 import util.exceptions.RoomAllocationUpdateException;
 import util.exceptions.UnknownPersistenceException;
@@ -22,4 +27,6 @@ public interface RoomAllocationSessionBeanRemote {
     public List<RoomAllocation> retrieveRoomAllocationsByReservationId(Long reservationId);
 
     public List<RoomAllocation> retrieveRoomAllocationsByRoomId(Long roomId);
+
+    public void allocateRoomsForWalkInReservation(Reservation reservation) throws RoomAllocationException, ReservationAddRoomAllocationException, ReservationNotFoundException, ReservationUpdateException;
 }

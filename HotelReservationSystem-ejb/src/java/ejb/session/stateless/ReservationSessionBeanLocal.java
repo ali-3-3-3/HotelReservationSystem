@@ -33,4 +33,9 @@ public interface ReservationSessionBeanLocal {
 
     public double calculateTotalReservationFee(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation);
      
+    public List<Reservation> retrieveReservationsByCheckInDate(Date checkInDate) throws ReservationNotFoundException;
+
+    public int countReservationsByRoomTypeAndDates(RoomType roomType, Date checkInDate, Date checkOutDate);
+    
+    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation);
 }

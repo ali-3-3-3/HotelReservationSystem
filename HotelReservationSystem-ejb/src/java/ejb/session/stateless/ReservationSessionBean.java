@@ -22,6 +22,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import util.enumerations.RateTypeEnum;
 import util.enumerations.RoomStatusEnum;
 import util.exceptions.CustomerNotFoundException;
 import util.exceptions.InputDataValidationException;
@@ -178,6 +179,24 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
     }
     
     @Override
+    public List<Reservation> retrieveReservationsByCheckInDate(Date checkInDate) throws ReservationNotFoundException {
+        // Constructing a query to retrieve all reservations that match the check-in date
+        String jpql = "SELECT r FROM Reservation r WHERE r.checkInDate = :checkInDate";
+        Query query = em.createQuery(jpql);
+        query.setParameter("checkInDate", checkInDate);
+
+        // Execute the query and retrieve the list of reservations
+        List<Reservation> reservations = query.getResultList();
+
+        // If no reservations are found, throw an exception
+        if (reservations.isEmpty()) {
+            throw new ReservationNotFoundException("No reservations found for the given check-in date: " + checkInDate);
+        }
+
+        return reservations;
+    }
+    
+    @Override
     @Transactional
     public double calculateTotalReservationFee(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation) {
         double totalFee = 0.0;
@@ -202,6 +221,41 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         
         return totalFee;
     }
+    
+    @Override
+    @Transactional
+    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation) {
+        double totalFee = 0.0;
+
+        RoomRate publishedRate = getPublishedRateForRoomType(roomType, checkInDate);
+
+        if (publishedRate == null) {
+            throw new IllegalArgumentException("No Published Rate available for the selected room type.");
+        }
+
+        long durationInMillis = checkOutDate.getTime() - checkInDate.getTime();
+        long durationInDays = durationInMillis / (1000 * 60 * 60 * 24);
+
+        totalFee = durationInDays * publishedRate.getRatePerNight();
+
+        return totalFee;
+    }
+    
+    private RoomRate getPublishedRateForRoomType(RoomType roomType, Date date) {
+        List<RoomRate> roomRates = roomType.getRoomRates(); 
+
+        for (RoomRate rate : roomRates) {
+            if (rate.getRateType() == RateTypeEnum.PUBLISHED && isDateWithinRange(date, rate.getStartDate(), rate.getEndDate())) {
+                return rate; 
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isDateWithinRange(Date date, Date startDate, Date endDate) {
+        return (date.equals(startDate) || date.after(startDate)) && (date.equals(endDate) || date.before(endDate));
+    }
 
     private RoomRate getDailyRateForRoomType(Date date, RoomType roomType) {
         RoomRate selectedRate = null;
@@ -209,7 +263,6 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
         List<RoomRate> roomRates = roomType.getRoomRates();
 
-        // Prioritize Promotion Rate > Peak Rate > Normal Rate > Published Rate
         for (RoomRate rate : roomRates) {
             if (isDateWithinRange(date, rate.getStartDate(), rate.getEndDate())) {
                 switch (rate.getRateType()) {
@@ -230,14 +283,28 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         return selectedRate;
     }
 
-    private boolean isDateWithinRange(Date date, Date startDate, Date endDate) {
-        return (date.equals(startDate) || date.after(startDate)) && (date.equals(endDate) || date.before(endDate));
-    }
-
     private Date getNextDate(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(Calendar.DATE, 1);
         return calendar.getTime();
     }
+    
+    @Override
+    public int countReservationsByRoomTypeAndDates(RoomType roomType, Date checkInDate, Date checkOutDate) {
+        // JPQL query to count the number of reservations for a specific room type within a date range
+        String jpql = "SELECT COUNT(r) FROM Reservation r "
+                    + "WHERE r.roomType = :roomType "
+                    + "AND ((r.checkInDate BETWEEN :checkInDate AND :checkOutDate) "
+                    + "OR (r.checkOutDate BETWEEN :checkInDate AND :checkOutDate) "
+                    + "OR (r.checkInDate <= :checkInDate AND r.checkOutDate >= :checkOutDate))";
+
+        Query query = em.createQuery(jpql);
+        query.setParameter("roomType", roomType);
+        query.setParameter("checkInDate", checkInDate);
+        query.setParameter("checkOutDate", checkOutDate);
+
+        return ((Long) query.getSingleResult()).intValue();  // Returns the count as an integer
+    }
+
 }
