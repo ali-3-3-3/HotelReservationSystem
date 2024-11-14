@@ -1,13 +1,14 @@
 package ejb.session.ws;
 
-import util.exceptions.PartnerEmailExistException;
 import ejb.session.stateless.CustomerSessionBeanLocal;
 import ejb.session.stateless.PartnerSessionBeanLocal;
 import ejb.session.stateless.ReservationSessionBeanLocal;
+import ejb.session.stateless.RoomSessionBeanLocal;
 import ejb.session.stateless.RoomTypeSessionBeanLocal;
-import entity.Customer;
 import entity.Partner;
 import entity.Reservation;
+import entity.Room;
+import entity.RoomRate;
 import entity.RoomType;
 import java.util.Date;
 import java.util.List;
@@ -17,15 +18,15 @@ import javax.ejb.Stateless;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import util.exceptions.*;
 
 @WebService(serviceName = "PartnerWebService")
 @Stateless(name = "PartnerWebService")
 public class PartnerWebService {
+
+    @EJB(name = "RoomSessionBeanLocal")
+    private RoomSessionBeanLocal roomSessionBeanLocal;
 
     @EJB(name = "CustomerSessionBeanLocal")
     private CustomerSessionBeanLocal customerSessionBeanLocal;
@@ -42,80 +43,73 @@ public class PartnerWebService {
     @EJB
     private ReservationSessionBeanLocal reservationSessionBeanLocal;
 
-
-    
     // Partner Login
-       @WebMethod(operationName = "doLogin")
+    @WebMethod(operationName = "doLogin")
     public Partner partnerLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
         Partner partner = partnerSessionBeanLocal.doLogin(email, password);
-        
+
         em.detach(partner);
-        
-        for(Reservation reservation : partner.getReservations()){
+
+        for (Reservation reservation : partner.getReservations()) {
             em.detach(reservation);
             reservation.setPartner(null);
             reservation.setGuest(null);
             reservation.setPartner(null);
             reservation.setRoomType(null);
         }
-       
+
         return partner;
     }
 
-
     // Partner Search Room
-    @WebMethod(operationName = "searchAvailableRooms")
-    public List<RoomType> searchAvailableRooms(@WebParam(name = "checkInDate") Date checkInDate,
-            @WebParam(name = "checkOutDate") Date checkOutDate)
-            throws RoomTypeNotFoundException {
-        List<RoomType> availableRooms = roomTypeSessionBeanLocal.getAllRoomTypes();
-        for (RoomType roomType : availableRooms) {
-            em.detach(roomType); // Detach each room type
+    @WebMethod(operationName = "searchRoom")
+    public List<RoomType> searchRoom(@WebParam(name = "checkinDate") Date checkinDate, @WebParam(name = "checkoutDate") Date checkoutDate, @WebParam(name = "noOfRoom") Integer noOfRoom) throws RoomTypeNotFoundException {
+        List<RoomType> availableRoomTypes = roomSessionBeanLocal.searchAvailableRoomTypes(checkinDate, checkoutDate);
+        for (RoomType roomType : availableRoomTypes) {
+            em.detach(roomType);
+            roomType.setNextHigherRoomType(null);
+            roomType.getRooms().clear();
+            roomType.getRoomRates().clear();
+            for (RoomRate rateRate : roomType.getRoomRates()) {
+                em.detach(rateRate);
+                rateRate.setRoomType(null);
+            }
+
+            for (Room room : roomType.getRooms()) {
+                em.detach(room);
+                room.setRoomType(null);
+            }
         }
-        return availableRooms;
+         return availableRoomTypes;
     }
 
-    // Partner Reserve Room
-    @WebMethod(operationName = "reserveRoom")
-    public Reservation reserveRoom(@WebParam(name = "partnerId") Long partnerId,
-            @WebParam(name = "customerId") Long customerId,
-            @WebParam(name = "roomTypeId") Long roomTypeId,
-            @WebParam(name = "checkInDate") Date checkInDate,
-            @WebParam(name = "checkOutDate") Date checkOutDate,
-            @WebParam(name = "roomCount") int roomCount)
-            throws PartnerNotFoundException, CustomerNotFoundException, RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException, RoomTypeNotFoundException {
-
-        // Verify partner existence
-        partnerSessionBeanLocal.retrievePartnerById(partnerId);
-
-        // Retrieve room type and customer
-        RoomType roomType = roomTypeSessionBeanLocal.retrieveRoomTypeById(roomTypeId);
-        Customer customer = customerSessionBeanLocal.findCustomerById(customerId);
-
-        // Create reservation on behalf of the partner's customer
-        Reservation reservation = reservationSessionBeanLocal.createReservationFromSearch(customer.getGuestId(), roomType, checkInDate, checkOutDate, roomCount);
-        em.detach(reservation);  // Detach to prevent unintended changes
-        return reservation;
-    }
-
+    //partner reserve room 
     // View Partner Reservation Details
-    @WebMethod(operationName = "viewReservationDetails")
-    public Reservation viewReservationDetails(@WebParam(name = "reservationId") Long reservationId)
-            throws ReservationNotFoundException {
-        Reservation reservation = reservationSessionBeanLocal.retrieveReservationById(reservationId);
-        em.detach(reservation);
-        return reservation;
-    }
+    @WebMethod(operationName = "viewReservationsByPartnerId")
+    public List<Reservation> viewReservationsByPartnerId(@WebParam(name = "partnerId") Long partnerId) {
+        List<Reservation> reservations = partnerSessionBeanLocal.retrieveReservationsByPartnerId(partnerId);
 
-    // View All Partner Reservations
-    @WebMethod(operationName = "viewAllPartnerReservations")
-    public List<Reservation> viewAllPartnerReservations(@WebParam(name = "partnerId") Long partnerId)
-            throws PartnerNotFoundException {
-        List<Reservation> reservations = reservationSessionBeanLocal.retrieveReservationsByPartnerId(partnerId);
         for (Reservation reservation : reservations) {
-            em.detach(reservation); // Detach each reservation
+
+            em.detach(reservation);
+
+            reservation.setGuest(null);
+            reservation.setPartner(null);
+            reservation.setRoomType(null);
         }
         return reservations;
     }
 
+    // View All Partner Reservation
+    @WebMethod(operationName = "retrievePartnerReservationsByReservationId")
+    public Reservation retrievePartnerReservationsByReservationId(@WebParam(name = "reservationId") Long reservationId) throws ReservationNotFoundException {
+        Reservation reservation = partnerSessionBeanLocal.getPartnerReservationsByReservationId(reservationId);
+
+        em.detach(reservation);
+        reservation.setGuest(null);
+        reservation.setPartner(null);
+        reservation.setRoomType(null);
+
+        return reservation;
+    }
 }
