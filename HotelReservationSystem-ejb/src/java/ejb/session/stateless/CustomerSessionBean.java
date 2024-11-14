@@ -21,7 +21,7 @@ import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
 import util.exceptions.UnknownPersistenceException;
 
-@Stateless
+@Stateless(mappedName = "java:global/HotelReservationSystem/CustomerSessionBeanRemote")
 public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerSessionBeanLocal {
 
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
@@ -34,6 +34,7 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
        validatorFactory = Validation.buildDefaultValidatorFactory();
        validator = validatorFactory.getValidator(); 
     }
+    //
 
     @Override
     @Transactional
