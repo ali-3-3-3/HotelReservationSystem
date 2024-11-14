@@ -50,7 +50,7 @@ public class RoomType implements Serializable {
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
     private List<Reservation> reservations;
     
-    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)
     private List<RoomRate> roomRates;
     
     public RoomType() {

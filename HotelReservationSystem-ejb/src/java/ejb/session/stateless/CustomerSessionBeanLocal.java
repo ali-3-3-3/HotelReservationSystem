@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.Customer;
+import entity.Reservation;
 import java.util.List;
 import javax.ejb.Local;
 import util.exceptions.CustomerExistException;
@@ -20,4 +21,6 @@ public interface CustomerSessionBeanLocal {
     public List<Customer> viewAllCustomers();
     
      public Customer findCustomerById(Long customerId) throws CustomerNotFoundException;
+     
+     public List<Reservation> getReservationsForCustomer(Long customerId);
 }

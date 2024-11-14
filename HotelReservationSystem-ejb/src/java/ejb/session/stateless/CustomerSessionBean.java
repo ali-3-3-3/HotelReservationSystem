@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.Customer;
+import entity.Reservation;
 import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
@@ -21,7 +22,7 @@ import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
 import util.exceptions.UnknownPersistenceException;
 
-@Stateless(mappedName = "java:global/HotelReservationSystem/CustomerSessionBeanRemote")
+@Stateless
 public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerSessionBeanLocal {
 
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
@@ -112,4 +113,15 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
     public List<Customer> viewAllCustomers() {
         return em.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
     }
+    
+    @Override
+    public List<Reservation> getReservationsForCustomer(Long customerId) {
+    Customer customer = em.find(Customer.class, customerId);
+    customer.getReservations().forEach(reservation -> {
+        reservation.getRoomRates().size();  // Trigger fetching of RoomRates
+        reservation.getRoomAllocations().size();  // Trigger fetching of RoomAllocations
+    });
+    return customer.getReservations();
+}
+
 }
