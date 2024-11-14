@@ -7,11 +7,16 @@ import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
 import entity.Reservation;
+import entity.RoomAllocation;
+import entity.RoomRate;
 import entity.RoomType;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.exceptions.CustomerExistException;
@@ -49,6 +54,7 @@ class MainApp {
     public void runApp() {
         while (true) {
             System.out.println("*** Hotel Reservation System ***");
+
             if (currentCustomer == null && !login) {
                 System.out.println("1: Login");
                 System.out.println("2: Register");
@@ -58,51 +64,56 @@ class MainApp {
                 System.out.println("1: Reserve Hotel Room!");
                 System.out.println("2: View all my reservations");
                 System.out.println("3: Logout");
+                System.out.println("4: Exit");
             }
 
-            response = 0;
+            System.out.print("> ");
+            response = scanner.nextInt();
+            scanner.nextLine(); // Consume newline character
 
-            // Ensure valid response is entered
-            while (response < 1 || response > 4) {
-                System.out.print("> ");
-                response = scanner.nextInt();
-                scanner.nextLine();  // Consume the newline character left by nextInt()
-
-                // Handling user options based on the login state
-                if (response == 1) {
+            switch (response) {
+                case 1:
                     if (currentCustomer == null && !login) {
                         try {
                             doLogin();
                             System.out.println("Login successful!");
-                            showCustomerMenu(); 
+                            showCustomerMenu();
                         } catch (InvalidLoginCredentialException ex) {
-                            System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
+                            System.out.println("Invalid login credential: " + ex.getMessage());
                         }
                     } else if (currentCustomer != null && login) {
                         doLogout();
                         System.out.println("Logout successful!");
                     }
-                } else if (response == 2) {
+                    break;
+
+                case 2:
                     if (currentCustomer == null && !login) {
                         try {
                             doRegister();
                         } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
                             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                    } else if (currentCustomer != null && login) {
+                        viewReservations();
                     }
-                } else if (response == 3 && currentCustomer == null && !login) {
-                    searchHotelRooms();
-                } else {
-                    System.out.println("Invalid option, please try again!\n");
-                }
-            }
+                    break;
 
-            // Break the loop when the user wants to exit
-            if ((response == 3 && currentCustomer != null && login) || response == 4) {
-                break;
+                case 3:
+                    if (currentCustomer == null && !login) {
+                        searchHotelRooms();
+                    }
+                    break;
+
+                case 4:
+                    return; // Exit the application
+
+                default:
+                    System.out.println("Invalid option, please try again.");
             }
         }
     }
+
     
     private void doLogin() throws InvalidLoginCredentialException {
         Scanner sc = new Scanner(System.in) ;
@@ -138,10 +149,18 @@ class MainApp {
         response = scanner.nextInt();
         scanner.nextLine();
         
-        if (response == 1) {
-            searchHotelRooms();
-        } else if (response == 2) {
-            
+        switch (response) {
+            case 1:
+                searchHotelRooms();
+                break;
+            case 2:
+                break;
+            case 3:
+                doLogout();
+                break;
+            default:
+                System.out.println("Invalid option, please try again!\n");
+                break;
         }
         
         
@@ -167,8 +186,10 @@ class MainApp {
             customerSessionBeanRemote.createNewCustomer(customer);
         
         } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
-            ex.getMessage();
+            System.out.println("An error occurred during registration: " + ex.getMessage());
+            ex.printStackTrace();
         }
+
     }
 
     public void searchHotelRooms() {
@@ -202,6 +223,7 @@ class MainApp {
                     RoomType roomType = availableRoomTypes.get(i);
                     System.out.println((i + 1) + ": " + roomType.getName());
                 }
+                
                 if(currentCustomer != null && login == true) {
                     int selection = 0;
                     while (selection < 1 || selection > availableRoomTypes.size()) {
@@ -216,10 +238,11 @@ class MainApp {
                     RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
 
                     makeReservation(selectedRoomType, checkInDate, checkOutDate);
-                    } else {
-                        System.out.println("No rooms available for the selected dates.");
-                    }
+                    
                 }
+        } else {
+            System.out.println("No rooms available for the selected dates.");
+        }
 
         } catch (Exception ex) {
             System.err.println("An error occurred while searching for room types: " + ex.getMessage());
@@ -298,5 +321,80 @@ class MainApp {
         }
 
         return null;
+    }
+
+    private void viewReservations() {
+        List<Reservation> reservations = currentCustomer.getReservations();
+        
+        reservations.stream().map(reservation -> {
+            System.out.println("Reservation ID: " + reservation.getReservationId());
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Reservation Date: " + formatDate(reservation.getReservationDate()));
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Check-In Date: " + formatDate(reservation.getCheckInDate()));
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Check-Out Date: " + formatDate(reservation.getCheckOutDate()));
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Check-In Time: " + formatTime(reservation.getCheckInTime()));
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Check-Out Time: " + formatTime(reservation.getCheckOutTime()));
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Has Checked In: " + reservation.isHasCheckedIn());
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Has Checked Out: " + reservation.isHasCheckedOut());
+            return reservation;
+        }).map(reservation -> {
+            System.out.println("Number of Rooms: " + reservation.getNumOfRooms());
+            return reservation;
+        }).map(reservation -> {
+            RoomType roomType = reservation.getRoomType();
+            if (roomType != null) {
+                System.out.println("Room Type: " + roomType.getName());
+            } else {
+                System.out.println("Room Type: Not specified");
+            }
+            // Print room rates if available
+            Set<RoomRate> roomRates = reservation.getRoomRates();
+            if (roomRates != null && !roomRates.isEmpty()) {
+                System.out.println("Room Rates:");
+                roomRates.forEach(rate -> {
+                    System.out.println(" - " + rate.getRateType() + ": " + rate.getRatePerNight());
+                });
+            } else {
+                System.out.println("Room Rates: Not specified");
+            }
+            // Print room allocations if available
+            List<RoomAllocation> roomAllocations = reservation.getRoomAllocations();
+            return roomAllocations;
+        }).map(roomAllocations -> {
+            if (roomAllocations != null && !roomAllocations.isEmpty()) {
+                System.out.println("Room Allocations:");
+                roomAllocations.forEach(allocation -> {
+                    System.out.println(" - Allocation ID: " + allocation.getAllocationId());
+                });
+            } else {
+                System.out.println("Room Allocations: Not specified");
+            }
+            return roomAllocations;
+        }).forEachOrdered(_item -> {
+            System.out.println("-------------------------------------------------");
+        });
+        
+    }
+    
+    // Helper methods for date and time formatting
+    private String formatDate(Date date) {
+        return date != null ? new SimpleDateFormat("yyyy-MM-dd").format(date) : "Not specified";
+    }
+
+    private String formatTime(LocalTime time) {
+        return time != null ? time.toString() : "Not specified";
     }
 }
