@@ -5,7 +5,6 @@ import entity.Reservation;
 import entity.Room;
 import entity.RoomAllocation;
 import entity.RoomType;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -67,9 +66,9 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
 
         if (!constraintViolations.isEmpty()) {
             StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
-            for (ConstraintViolation<RoomAllocation> violation : constraintViolations) {
+            constraintViolations.forEach(violation -> {
                 errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
-            }
+            });
             throw new InputDataValidationException(errorMsg.toString());
         }
         
@@ -140,6 +139,7 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
         return query.getResultList();
     }
     
+    @Override
     public void allocateRooms(Date checkInDate) throws RoomAllocationNotFoundException, RoomAllocationUpdateException, ReservationAddRoomAllocationException, ReservationUpdateException {
         try {
             // Retrieve reservations for the check-in date

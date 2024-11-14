@@ -23,4 +23,6 @@ public interface AllocationExceptionSessionBeanRemote {
     public List<AllocationException> retrieveAllocationExceptionsByRoomAllocationId(Long roomAllocationId);
 
     public List<AllocationException> retrieveAllocationExceptionsByEmployeeId(Long employeeId);
+
+    public List<AllocationException> viewAllAllocationExceptions();
 }
