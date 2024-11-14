@@ -11,6 +11,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -68,6 +69,16 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
             throw new RoomNotFoundException("Room with ID " + roomId + " not found.");
         }
         return room;
+    }
+    
+    @Override
+    public List<Room> retrieveAvailableRoomsByRoomType(RoomType roomType) {
+        // Constructing a query to retrieve all available rooms for a specific room type
+        String jpql = "SELECT r FROM Room r WHERE r.roomType = :roomType AND r.isAvailable = true";
+        Query query = em.createQuery(jpql);
+        query.setParameter("roomType", roomType);
+
+        return query.getResultList();
     }
 
     @Override

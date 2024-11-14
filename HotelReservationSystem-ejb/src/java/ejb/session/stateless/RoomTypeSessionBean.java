@@ -2,10 +2,12 @@ package ejb.session.stateless;
 
 import entity.RoomType;
 import java.util.Set;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -102,6 +104,15 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
         } catch (PersistenceException e) {
             throw new RoomTypeDeleteException("Failed to delete RoomType: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public List<RoomType> getAllRoomTypes() {
+        // Constructing a query to retrieve all room types
+        String jpql = "SELECT rt FROM RoomType rt";
+        Query query = em.createQuery(jpql);
+
+        return query.getResultList();
     }
 
 }

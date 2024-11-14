@@ -22,4 +22,5 @@ public interface GuestSessionBeanLocal {
 
     public void deleteGuest(Long guestId) throws GuestNotFoundException, GuestDeleteException;
     
+    public Guest retrieveGuestByEmail(String email) throws GuestNotFoundException;
 }

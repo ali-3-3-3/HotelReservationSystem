@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -76,6 +77,17 @@ public class GuestSessionBean implements GuestSessionBeanRemote, GuestSessionBea
             throw new GuestNotFoundException("Guest with ID " + guestId + " does not exist!");
         }
         return guest;
+    }
+    
+    @Override
+    public Guest retrieveGuestByEmail(String email) throws GuestNotFoundException {
+        try {
+            return em.createQuery("SELECT g FROM Guest g WHERE g.email = :email", Guest.class)
+                     .setParameter("email", email)
+                     .getSingleResult();
+        } catch (NoResultException ex) {
+            throw new GuestNotFoundException("Guest with email " + email + " does not exist!");
+        }
     }
     
     @Transactional

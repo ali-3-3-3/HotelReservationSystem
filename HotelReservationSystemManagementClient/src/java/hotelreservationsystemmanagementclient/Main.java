@@ -5,6 +5,7 @@ import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.GuestSessionBeanRemote;
 import ejb.session.stateless.ReservationSessionBeanRemote;
+import ejb.session.stateless.RoomAllocationSessionBeanRemote;
 import ejb.session.stateless.RoomRateSessionBeanRemote;
 import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
@@ -26,13 +27,15 @@ public class Main {
     private static RoomRateSessionBeanRemote roomRateSessionBeanRemote;
     @EJB
     private static RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
+    @EJB
+    private static RoomAllocationSessionBeanRemote roomAllocationSessionBeanRemote;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         
-        MainApp mainApp = new MainApp(allocationExceptionSessionBeanRemote, guestSessionBeanRemote, employeeSessionBeanRemote, reservationSessionBeanRemote, roomSessionBeanRemote, roomRateSessionBeanRemote, roomTypeSessionBeanRemote);
+        MainApp mainApp = new MainApp(allocationExceptionSessionBeanRemote, guestSessionBeanRemote, employeeSessionBeanRemote, reservationSessionBeanRemote, roomSessionBeanRemote, roomRateSessionBeanRemote, roomTypeSessionBeanRemote, roomAllocationSessionBeanRemote);
         mainApp.runApp();
     }
     
