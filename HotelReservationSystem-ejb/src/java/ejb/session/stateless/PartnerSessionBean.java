@@ -27,15 +27,15 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
 
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
     private EntityManager em;
-    
+
     private final ValidatorFactory validatorFactory;
     private final Validator validator;
-    
+
     public PartnerSessionBean() {
         validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.getValidator();
     }
-    
+
     @Override
     @Transactional
     public Partner createNewPartner(Partner partner) throws InputDataValidationException, PartnerExistException, UnknownPersistenceException {
@@ -65,57 +65,56 @@ public class PartnerSessionBean implements PartnerSessionBeanRemote, PartnerSess
             }
         }
     }
-    
-     
+
     @Override
-    public Partner retrievePartnerBySystemName(String systemName) throws PartnerNotFoundException {
-        Query query = em.createQuery("SELECT p FROM Partner p WHERE p.systemName = :systemName");
-        query.setParameter("systemName", systemName);
-        
+    public Partner retrievePartnerByEmail(String email) throws PartnerNotFoundException {
+        Query query = em.createQuery("SELECT p FROM Partner p WHERE p.email = :email");
+        query.setParameter("email", email);
+
         try {
-        return (Partner) query.getSingleResult();
+            return (Partner) query.getSingleResult();
         } catch (NoResultException | NonUniqueResultException ex) {
             throw new PartnerNotFoundException("Partner does not exist!");
         }
     }
-    
+
     @Override
     public Partner retrievePartnerById(Long id) throws PartnerNotFoundException {
         Partner partner = em.find(Partner.class, id);
-        if(partner != null) {
+        if (partner != null) {
             return partner;
         } else {
             throw new PartnerNotFoundException("Partner id " + id.toString() + " does not exist!");
         }
     }
-    
+
     @Override
     public List<Partner> retrieveAllPartners() throws PartnerNotFoundException {
         TypedQuery<Partner> query = em.createQuery("SELECT p FROM Partner p", Partner.class);
         List<Partner> partners = query.getResultList();
-        
+
         if (partners.isEmpty()) {
             throw new PartnerNotFoundException("No partners found.");
         }
-        
+
         return partners;
     }
 
     @Override
-    public Partner doLogin(String systemName, String password) throws InvalidLoginCredentialException {
+    public Partner doLogin(String email, String password) throws InvalidLoginCredentialException {
         try {
-            Partner partner = retrievePartnerBySystemName(systemName);
-            
-            if(partner.getPassword().equals(password)) {
+            Partner partner = retrievePartnerByEmail(email);
+
+            if (partner.getPassword().equals(password)) {
                 return partner;
             } else {
                 throw new InvalidLoginCredentialException("Login Credentials are invalid. Please try again.\n");
             }
         } catch (PartnerNotFoundException ex) {
-                throw new InvalidLoginCredentialException("Login Credentials are invalid. Please try again.\n");
+            throw new InvalidLoginCredentialException("Login Credentials are invalid. Please try again.\n");
         }
     }
-    
+
     @Override
     public List<Partner> viewAllPartners() {
         return em.createQuery("SELECT p FROM Partner p", Partner.class).getResultList();

@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.RoomType;
+import java.util.Date;
 import java.util.Set;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -8,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -113,6 +115,24 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
         Query query = em.createQuery(jpql);
 
         return query.getResultList();
+    }
+    
+    @Override
+    public List<RoomType> retrieveAvailableRooms(Date checkInDate, Date checkOutDate) throws RoomTypeNotFoundException {
+        TypedQuery<RoomType> query = em.createQuery(
+            "SELECT rt FROM RoomType rt WHERE rt.id NOT IN (SELECT r.roomType.id FROM Reservation r WHERE r.checkInDate < :checkOutDate AND r.checkOutDate > :checkInDate)", 
+            RoomType.class
+        );
+        query.setParameter("checkInDate", checkInDate);
+        query.setParameter("checkOutDate", checkOutDate);
+
+        List<RoomType> availableRoomTypes = query.getResultList();
+        if (availableRoomTypes.isEmpty()) {
+            throw new RoomTypeNotFoundException("No rooms available for the specified dates.");
+        }
+
+        availableRoomTypes.forEach(em::detach);  
+        return availableRoomTypes;
     }
 
 }

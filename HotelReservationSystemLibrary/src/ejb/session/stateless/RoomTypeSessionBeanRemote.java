@@ -1,6 +1,7 @@
 package ejb.session.stateless;
 
 import entity.RoomType;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Remote;
 import util.exceptions.InputDataValidationException;
@@ -22,5 +23,7 @@ public interface RoomTypeSessionBeanRemote {
     public void deleteRoomType(Long roomTypeId) throws RoomTypeNotFoundException, RoomTypeDeleteException;
 
     public List<RoomType> getAllRoomTypes();
+
+    public List<RoomType> retrieveAvailableRooms(Date checkInDate, Date checkOutDate) throws RoomTypeNotFoundException;
     
 }
