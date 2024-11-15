@@ -16,6 +16,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 import util.exceptions.RoomTypeAddReservationException;
 import util.exceptions.RoomTypeAddRoomException;
 import util.exceptions.RoomTypeAddRoomRateException;
@@ -51,6 +52,7 @@ public class RoomType implements Serializable {
     private List<Reservation> reservations;
     
     @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)
+    @XmlTransient
     private List<RoomRate> roomRates;
     
     public RoomType() {

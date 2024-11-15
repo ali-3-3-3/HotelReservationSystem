@@ -10,8 +10,13 @@ import entity.Reservation;
 import entity.Room;
 import entity.RoomRate;
 import entity.RoomType;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.jws.WebService;
 import javax.ejb.Stateless;
@@ -42,62 +47,127 @@ public class PartnerWebService {
 
     @EJB
     private ReservationSessionBeanLocal reservationSessionBeanLocal;
+    
+    private Partner partner;
+    
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    
 
     // Partner Login
     @WebMethod(operationName = "doLogin")
     public Partner partnerLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
-        Partner partner = partnerSessionBeanLocal.doLogin(email, password);
-
-        em.detach(partner);
-
-        for (Reservation reservation : partner.getReservations()) {
-            em.detach(reservation);
-            reservation.setPartner(null);
-            reservation.setGuest(null);
-            reservation.setPartner(null);
-            reservation.setRoomType(null);
-        }
+        partner = partnerSessionBeanLocal.doLogin(email, password);
 
         return partner;
     }
 
     // Partner Search Room
     @WebMethod(operationName = "searchRoom")
-    public List<RoomType> searchRoom(@WebParam(name = "checkinDate") Date checkinDate, @WebParam(name = "checkoutDate") Date checkoutDate, @WebParam(name = "noOfRoom") Integer noOfRoom) throws RoomTypeNotFoundException {
-        List<RoomType> availableRoomTypes = roomSessionBeanLocal.searchAvailableRoomTypes(checkinDate, checkoutDate);
-        for (RoomType roomType : availableRoomTypes) {
-            em.detach(roomType);
-            roomType.setNextHigherRoomType(null);
-            roomType.getRooms().clear();
-            roomType.getRoomRates().clear();
-            for (RoomRate rateRate : roomType.getRoomRates()) {
-                em.detach(rateRate);
-                rateRate.setRoomType(null);
-            }
+    public List<RoomType> searchRoom(
+            @WebParam(name = "checkinDateString") String checkinDateString, 
+            @WebParam(name = "checkoutDateString") String checkoutDateString) 
+            throws RoomTypeNotFoundException, InputDataValidationException {
+        
+        dateFormat.setLenient(false);
+        
+        Date checkinDate;
+        Date checkoutDate;
 
-            for (Room room : roomType.getRooms()) {
-                em.detach(room);
-                room.setRoomType(null);
+        try {
+            checkinDate = dateFormat.parse(checkinDateString);
+            checkoutDate = dateFormat.parse(checkoutDateString);
+
+            // Ensure check-out date is after check-in date
+            if (checkoutDate.before(checkinDate)) {
+                throw new InputDataValidationException("Check-out date must be after check-in date.");
             }
+        } catch (ParseException e) {
+            throw new InputDataValidationException("Invalid date format. Please use yyyy-MM-dd.");
         }
-         return availableRoomTypes;
+
+        try {
+            List<RoomType> availableRoomTypes = roomSessionBeanLocal.searchAvailableRoomTypes(checkinDate, checkoutDate);
+            return availableRoomTypes != null ? availableRoomTypes : new ArrayList<>();  // Return an empty list instead of null
+        }catch (Exception ex) {
+            // Log unexpected exception and throw a general input validation exception
+            System.err.println("An unexpected error occurred while searching for room types: " + ex.getMessage());
+            throw new InputDataValidationException("An unexpected error occurred. Please try again later.");
+        }
+        // Log and rethrow known exception
+        
+        
     }
 
-    //partner reserve room 
+    // Partner reserve room 
     @WebMethod(operationName = "reserveNewReservation")
-    public Reservation reserveNewReservation(@WebParam(name = "checkinDate") Date checkinDate, @WebParam(name = "checkoutDate") Date checkoutDate, @WebParam(name = "noOfRoom") Integer noOfRoom, @WebParam(name = "roomType")RoomType roomType,
-            @WebParam(name = "guestId")Long guestId) throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException{
+    public Reservation reserveNewReservation(
+            @WebParam(name = "checkinDate") String checkinDateString,
+            @WebParam(name = "checkoutDate") String checkoutDateString,
+            @WebParam(name = "noOfRoom") Integer noOfRoom,
+            @WebParam(name = "roomType") String roomTypeString,
+            @WebParam(name = "guestId") Long guestId)
+            throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
+
+        // Validate number of rooms
+        if (noOfRoom == null || noOfRoom <= 0) {
+            throw new InvalidRoomCountException("Number of rooms must be greater than zero.");
+        }
         
-        Reservation reservation = reservationSessionBeanLocal.createReservationFromSearch(guestId, roomType, checkinDate, checkoutDate, noOfRoom);
+        dateFormat.setLenient(false);
         
-        em.detach(reservation);
-        
-        reservation.setGuest(null);
-        reservation.setPartner(null);
-        reservation.setRoomType(null);
-        
+        Date checkinDate;
+        Date checkoutDate;
+
+        // Parse and validate checkin date
+        try {
+            checkinDate = dateFormat.parse(checkinDateString);
+        } catch (ParseException e) {
+            throw new InputDataValidationException("Invalid check-in date format. Please use yyyy-MM-dd.");
+        }
+
+        // Parse and validate checkout date
+        try {
+            checkoutDate = dateFormat.parse(checkoutDateString);
+        } catch (ParseException e) {
+            throw new InputDataValidationException("Invalid check-out date format. Please use yyyy-MM-dd.");
+        }
+
+        // Ensure check-out date is after check-in date
+        if (checkoutDate.before(checkinDate)) {
+            throw new InputDataValidationException("Check-out date must be after check-in date.");
+        }
+
+        // Retrieve room type
+        RoomType roomType;
+        try {
+            roomType = roomTypeSessionBeanLocal.retrieveRoomTypeByName(roomTypeString);
+        } catch (RoomTypeNotFoundException ex) {
+            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Room type not found: " + roomTypeString, ex);
+            throw new InputDataValidationException("Specified room type does not exist.");
+        }
+
+        // Create reservation
+        Reservation reservation;
+        try {
+            reservation = reservationSessionBeanLocal.createReservationFromSearch(guestId, roomType, checkinDate, checkoutDate, noOfRoom);
+        } catch (Exception ex) {
+            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Error creating reservation", ex);
+            throw new UnknownPersistenceException("An error occurred while creating the reservation. Please try again later.");
+        }
+
+        // Associate reservation with partner and update reservation
+        try {
+            reservation.setPartner(partner); // Ensure 'partner' is properly defined in this context
+            reservationSessionBeanLocal.updateReservation(reservation.getReservationId(), reservation);
+        } catch (ReservationNotFoundException | ReservationUpdateException ex) {
+            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Error updating reservation", ex);
+            throw new UnknownPersistenceException("An error occurred while updating the reservation. Please try again later.");
+        }
+
+        System.out.println("Reservation created successfully with ID: " + reservation.getReservationId());
         return reservation;
     }
+
     
     
     

@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 import util.enumerations.RateTypeEnum;
 
 @Entity
