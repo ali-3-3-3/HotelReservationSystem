@@ -64,7 +64,7 @@ class MainApp {
                         doSearchHotelRoom();
                         break;
                     case 3:
-                        
+                        doReserveHotel();
                         break;
                     case 4: 
                         doViewResDetails();
@@ -109,8 +109,8 @@ class MainApp {
         reservationId = new Long(scanner.nextLine().trim());
         
         reservation = service.getPartnerWebServicePort().retrievePartnerReservationsByReservationId(reservationId);
-        System.out.printf("%5s%40s%40s%40s\n","ID", "Reservation Type",  "Check-in Date", "Check-out Date");
-        System.out.printf("%5s%40s%40s%40s\n",reservation.getReservationId(),reservation.getRoomType(), 
+        System.out.printf("%5s %40s %40s %40s\n","ID", "Reservation Type",  "Check-in Date", "Check-out Date");
+        System.out.printf("%5s %40s %40s %40s\n",reservation.getReservationId(),reservation.getRoomType(), 
                         reservation.getCheckInDate().toString(), reservation.getCheckOutDate().toString());
         System.out.println("\n");
     }
@@ -165,6 +165,10 @@ class MainApp {
 
     private String formatTime(LocalTime time) {
         return time != null ? time.toString() : "Not specified";
+    }
+
+    private void doReserveHotel() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
     
