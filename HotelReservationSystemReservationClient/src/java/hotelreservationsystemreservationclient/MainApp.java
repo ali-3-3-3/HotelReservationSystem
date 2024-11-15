@@ -17,6 +17,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import util.exceptions.CustomerExistException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
@@ -75,8 +77,7 @@ class MainApp {
                             System.out.println("Invalid login credential: " + ex.getMessage());
                         }
                     } else if (currentCustomer != null && login) {
-                        doLogout();
-                        System.out.println("Logout successful!");
+                        searchHotelRooms();
                     }
                     break;
 
@@ -298,7 +299,17 @@ class MainApp {
             }
 
             return reservation;
-
+            } catch (ConstraintViolationException ex) {
+                System.out.println("Bean validation error: " + ex.getMessage());
+                ex.getConstraintViolations().stream().map(violation -> {
+                    System.out.println("Property: " + violation.getPropertyPath());
+                return violation;
+            }).map(violation -> {
+                System.out.println("Invalid value: " + violation.getInvalidValue());
+                return violation;
+            }).forEachOrdered(violation -> {
+                System.out.println("Error: " + violation.getMessage());
+            });
         } catch (InputDataValidationException ex) {
             System.out.println("Data validation error: " + ex.getMessage());
         } catch (InvalidRoomCountException ex) {

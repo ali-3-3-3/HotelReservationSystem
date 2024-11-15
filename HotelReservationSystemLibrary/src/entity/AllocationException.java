@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 import util.enumerations.ResolutionStatusEnum;
 
 @Entity
@@ -30,13 +31,10 @@ public class AllocationException implements Serializable {
     @Enumerated(EnumType.STRING)
     @NotNull
     private ResolutionStatusEnum resolutionStatus;
-
-    @ManyToOne(optional = false, cascade = {}, fetch = FetchType.EAGER)
-    @JoinColumn(name = "employeeId", nullable = false)
-    private Employee employee;
     
     @OneToOne(mappedBy = "exception", optional = false, fetch = FetchType.EAGER)
     @NotNull
+    @XmlTransient
     private RoomAllocation roomAllocation;
 
     public AllocationException() {
@@ -96,14 +94,6 @@ public class AllocationException implements Serializable {
         this.resolutionStatus = resolutionStatus;
     }
     
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    } 
-
     public RoomAllocation getRoomAllocation() {
         return roomAllocation;
     }

@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.xml.bind.annotation.XmlTransient;
 import util.enumerations.RoomStatusEnum;
 import util.exceptions.RoomAddRoomAllocationException;
 
@@ -43,6 +44,7 @@ public class Room implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "roomTypeId", nullable = false)
     @NotNull
+    @XmlTransient
     private RoomType roomType;
     
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)

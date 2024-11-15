@@ -1,7 +1,6 @@
 package hotelreservationsystemmanagementclient;
 
 import ejb.session.stateless.AllocationExceptionSessionBeanRemote;
-import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.GuestSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;

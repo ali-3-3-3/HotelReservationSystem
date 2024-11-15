@@ -53,6 +53,7 @@ public class RoomRate implements Serializable {
     @ManyToOne (optional = false, cascade = {}, fetch = FetchType.EAGER)
     @JoinColumn (name = "roomTypeId", nullable = false)
     @NotNull
+    @XmlTransient
     private RoomType roomType;
     
     @ManyToMany (mappedBy = "roomRates", cascade = {}, fetch = FetchType.LAZY)

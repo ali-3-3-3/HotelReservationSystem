@@ -44,11 +44,7 @@ public class Employee implements Serializable {
     @NotNull
     private String email;
     
-    @OneToMany(mappedBy="employee", fetch = FetchType.LAZY)
-    private List<AllocationException> exceptions;
-
     public Employee() {
-        this.exceptions = new ArrayList<>();
     }
 
     public Employee(String name, String password, EmployeeRoleEnum role, String email) {
@@ -58,17 +54,6 @@ public class Employee implements Serializable {
         this.password = password;
         this.UserRole = role;
         this.email = email;
-    }
-    
-    public void addException(AllocationException exception) throws EmployeeAddExceptionException {
-        if(exception != null && !this.getExceptions().contains(exception))
-        {
-            this.getExceptions().add(exception);
-        }
-        else
-        {
-            throw new EmployeeAddExceptionException("Exception already added to employee");
-        }
     }
 
     public Long getEmployeeId() {
@@ -126,14 +111,6 @@ public class Employee implements Serializable {
 
     public void setUserRole(EmployeeRoleEnum UserRole) {
         this.UserRole = UserRole;
-    }
-
-    public List<AllocationException> getExceptions() {
-        return exceptions;
-    }
-
-    public void setExceptions(List<AllocationException> exceptions) {
-        this.exceptions = exceptions;
     }
 
     public String getPassword() {
