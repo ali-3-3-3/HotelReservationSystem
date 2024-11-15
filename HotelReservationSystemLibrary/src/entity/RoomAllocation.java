@@ -41,8 +41,8 @@ public class RoomAllocation implements Serializable {
     @XmlTransient
     private Reservation reservation;
     
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "exceptionId", unique = true)
+    @OneToOne(cascade = {CascadeType.REMOVE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
+    @JoinColumn(name = "exceptionId", unique = true, nullable = true)
     @XmlTransient
     private AllocationException exception;
 

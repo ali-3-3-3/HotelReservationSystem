@@ -42,4 +42,6 @@ public interface ReservationSessionBeanLocal {
 
     public void checkOutReservation(Long reservationId) throws ReservationNotFoundException;
     
+    public void checkInReservation(Long reservationId) throws ReservationNotFoundException, RoomTypeUnavailableException;
+    
 }

@@ -41,6 +41,7 @@ public class RoomType implements Serializable {
     @NotNull
     private String description;
     
+    @Column(name = "AVAILABLEROOMSCOUNT", nullable = false)
     @NotNull
     private int availableRoomsCount;
     
@@ -49,10 +50,10 @@ public class RoomType implements Serializable {
     @XmlTransient
     private RoomType nextHigherRoomType;
     
-    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)
     private List<Room> rooms;
     
-    @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)
     private List<Reservation> reservations;
     
     @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)

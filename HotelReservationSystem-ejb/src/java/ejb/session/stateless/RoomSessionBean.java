@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,10 +19,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import util.enumerations.RoomStatusEnum;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.RoomDeleteException;
 import util.exceptions.RoomExistException;
 import util.exceptions.RoomNotFoundException;
+import util.exceptions.RoomTypeAddRoomException;
 import util.exceptions.RoomUpdateException;
 import util.exceptions.UnknownPersistenceException;
 
@@ -43,9 +47,11 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
         Set<ConstraintViolation<Room>>constraintViolations = validator.validate(room);
         try {
             if (constraintViolations.isEmpty()){
-            em.persist(room);
-            em.flush();
-            return room;
+                RoomType roomType = room.getRoomType();
+                roomType.addRoom(room);
+                em.persist(room);
+                em.flush();
+                return room;
             } else {
                  throw new InputDataValidationException();
             }
@@ -59,7 +65,10 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
             } else {
                 throw new UnknownPersistenceException(ex.getMessage());
             }
+        } catch (RoomTypeAddRoomException ex) {
+            Logger.getLogger(RoomSessionBean.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
     }
     
     @Override
@@ -73,12 +82,18 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
     
     @Override
     public List<Room> retrieveAvailableRoomsByRoomType(RoomType roomType) {
-        // Constructing a query to retrieve all available rooms for a specific room type
-        String jpql = "SELECT r FROM Room r WHERE r.roomType = :roomType AND r.isAvailable = true";
-        Query query = em.createQuery(jpql);
-        query.setParameter("roomType", roomType);
-
-        return query.getResultList();
+        try {
+            return em.createQuery(
+                    "SELECT r FROM Room r WHERE r.roomType = :roomType AND r.roomStatus = :roomStatus", 
+                    Room.class
+                )
+                .setParameter("roomType", roomType)
+                .setParameter("roomStatus", RoomStatusEnum.AVAILABLE)
+                .getResultList();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ArrayList<>(); // Return an empty list if there’s an error
+        }
     }
 
     @Override

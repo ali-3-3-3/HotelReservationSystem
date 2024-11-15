@@ -24,11 +24,13 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.Validation;
 import util.enumerations.ResolutionStatusEnum;
+import util.enumerations.RoomStatusEnum;
 import util.exceptions.AllocationExceptionExistException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.ReservationAddRoomAllocationException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
+import util.exceptions.RoomAddRoomAllocationException;
 import util.exceptions.RoomAllocationDeleteException;
 import util.exceptions.RoomAllocationException;
 import util.exceptions.RoomAllocationNotFoundException;
@@ -145,39 +147,19 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
             // Retrieve reservations for the check-in date
             List<Reservation> reservations = reservationSessionBean.retrieveReservationsByCheckInDate(checkInDate);
 
-            // Map to hold available rooms for each room type
-            Map<RoomType, List<Room>> availableRoomsByType = initializeRoomAvailability();
-
             // Iterate over each reservation and attempt room allocation
             for (Reservation reservation : reservations) {
-                RoomType reservedRoomType = reservation.getRoomType();
-                RoomAllocation roomAllocation = new RoomAllocation(new Date());
-                roomAllocation.setReservation(reservation);
-                
-                try {
-                    Room allocatedRoom = allocateRoom(reservedRoomType, availableRoomsByType);
-                    roomAllocation.setRoom(allocatedRoom);
-                    reservation.addRoomAllocation(roomAllocation);
-                    reservationSessionBean.updateReservation(reservation.getReservationId(), reservation);
-                    System.out.println("Allocated room: " + allocatedRoom.getRoomNumber() + " for reservation " + reservation.getReservationId());
-                } catch (ReservationAddRoomAllocationException | ReservationNotFoundException | ReservationUpdateException | RoomAllocationException ex) {
-                    Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
-                    AllocationException allocationException = new AllocationException(ex.getMessage(), ResolutionStatusEnum.PENDING);
-                    allocationException.setRoomAllocation(roomAllocation);
-                    roomAllocation.setIsException(true);
-                    roomAllocation.setException(allocationException);
-                    updateRoomAllocation(roomAllocation.getAllocationId(), roomAllocation);
-                    reservation.addRoomAllocation(roomAllocation);
-                    reservationSessionBean.updateReservation(reservation.getReservationId(), reservation);
-                    allocationExceptionSessionBean.createAllocationException(allocationException);
-                }
+                allocateRoomsForWalkInReservation(reservation);
             }
-        } catch (AllocationExceptionExistException | InputDataValidationException | ReservationNotFoundException | UnknownPersistenceException ex) {
+        } catch (ReservationNotFoundException ex) {
             Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, "Error during room allocation", ex);
+        } catch (RoomAllocationException ex) {
+            Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    private Map<RoomType, List<Room>> initializeRoomAvailability() {
+    
+    @Override
+    public Map<RoomType, List<Room>> initializeRoomAvailability() {
         Map<RoomType, List<Room>> availableRoomsByType = new HashMap<>();
         List<RoomType> roomTypes = roomTypeSessionBean.getAllRoomTypes();
 
@@ -196,10 +178,29 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
         if (rooms != null && !rooms.isEmpty()) {
             return rooms.remove(0);
         } else if (roomType.getNextHigherRoomType() != null) {
-            // Try the next higher room type if available
-            return allocateRoom(roomType.getNextHigherRoomType(), availableRoomsByType);
+            
+            Room allocatedRoom = allocateRoom(roomType.getNextHigherRoomType(), availableRoomsByType);
+            
+            if (allocatedRoom != null) {
+                AllocationException allocationException = new AllocationException("Room upgraded", ResolutionStatusEnum.PENDING);
+                try {
+                    allocationExceptionSessionBean.createAllocationException(allocationException);
+                } catch (InputDataValidationException | UnknownPersistenceException | AllocationExceptionExistException ex1) {
+                    Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            }
+
+            return allocatedRoom;
+            
         } else {
             // If no room is available at any level, throw an exception
+            AllocationException allocationException;
+            allocationException = new AllocationException("RoomAllocationException: Failed to Allocate Room as no Room is Available.", ResolutionStatusEnum.PENDING);
+                try {
+                    allocationExceptionSessionBean.createAllocationException(allocationException);
+                } catch (InputDataValidationException | UnknownPersistenceException | AllocationExceptionExistException ex1) {
+                    Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
+                }
             throw new RoomAllocationException("Failed to allocate room. Creating allocation exception report.");
         }
     }
@@ -211,33 +212,48 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
         Map<RoomType, List<Room>> availableRoomsByType = initializeRoomAvailability();;
 
         RoomType reservedRoomType = reservation.getRoomType();
+        int numOfRooms = reservation.getNumOfRooms();
         RoomAllocation roomAllocation = new RoomAllocation(new Date());
         roomAllocation.setReservation(reservation);
 
-        try {
-            Room allocatedRoom = allocateRoom(reservedRoomType, availableRoomsByType);
-            roomAllocation.setRoom(allocatedRoom);
-            reservation.addRoomAllocation(roomAllocation);
-            reservationSessionBean.updateReservation(reservation.getReservationId(), reservation);
-            System.out.println("Allocated room: " + allocatedRoom.getRoomNumber() + " for reservation " + reservation.getReservationId());
-        } catch (ReservationAddRoomAllocationException | ReservationNotFoundException | ReservationUpdateException  ex) {
-            Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
-            AllocationException allocationException = new AllocationException(ex.getMessage(), ResolutionStatusEnum.PENDING);
-            allocationException.setRoomAllocation(roomAllocation);
-            roomAllocation.setIsException(true);
-            roomAllocation.setException(allocationException);
+        for (int i = 0; i < numOfRooms; i++) {
             try {
-                updateRoomAllocation(roomAllocation.getAllocationId(), roomAllocation);
-            } catch (RoomAllocationNotFoundException | RoomAllocationUpdateException ex1) {
-                Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
+                Room allocatedRoom = allocateRoom(reservedRoomType, availableRoomsByType);
+                roomAllocation.setRoom(allocatedRoom);
+                allocatedRoom.addRoomAllocation(roomAllocation);
+                allocatedRoom.setRoomStatus(RoomStatusEnum.RESERVED);
+
+                // Persist room allocation before updating the reservation
+                createRoomAllocation(roomAllocation);
+
+                reservationSessionBean.updateReservation(reservation.getReservationId(), reservation);
+                System.out.println("Allocated room: " + allocatedRoom.getRoomNumber() + " for reservation " + reservation.getReservationId());
+            } catch (ReservationNotFoundException | ReservationUpdateException ex) {
+                Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
+
+                AllocationException allocationException = new AllocationException(ex.getMessage(), ResolutionStatusEnum.PENDING);
+                allocationException.setRoomAllocation(roomAllocation);
+                roomAllocation.setIsException(true);
+                roomAllocation.setException(allocationException);
+
+                try {
+                    // Persist room allocation before updating it
+                    createRoomAllocation(roomAllocation);
+
+                    updateRoomAllocation(roomAllocation.getAllocationId(), roomAllocation);
+                } catch (RoomAllocationNotFoundException | RoomAllocationUpdateException | InputDataValidationException | UnknownPersistenceException ex1) {
+                    Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+
+                try {
+                    allocationExceptionSessionBean.createAllocationException(allocationException);
+                } catch (InputDataValidationException | UnknownPersistenceException | AllocationExceptionExistException ex1) {
+                    Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            } catch (RoomAddRoomAllocationException | InputDataValidationException | UnknownPersistenceException ex) {
+                Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
             }
-            reservation.addRoomAllocation(roomAllocation);
-            reservationSessionBean.updateReservation(reservation.getReservationId(), reservation);
-            try {
-                allocationExceptionSessionBean.createAllocationException(allocationException);
-            } catch (InputDataValidationException | UnknownPersistenceException | AllocationExceptionExistException ex1) {
-                Logger.getLogger(RoomAllocationSessionBean.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+
         }
     }
 }

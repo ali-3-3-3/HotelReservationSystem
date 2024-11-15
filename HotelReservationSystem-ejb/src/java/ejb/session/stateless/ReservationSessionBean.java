@@ -104,13 +104,6 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
                 Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.WARNING, "Requested room type has only " + availableRooms.size() + " rooms available.");
                 throw new RoomTypeUnavailableException("Requested room type has only " + availableRooms.size() + " rooms available.");
             }
-            RoomType managedRoomType = em.find(RoomType.class, roomType.getRoomTypeId());
-            
-            if (managedRoomType.getAvailableRoomsCount() < roomCount) {
-                throw new RoomTypeUnavailableException("Insufficient rooms available for this room type.");
-            }
-
-            managedRoomType.decrementAvailableRoomsCount(roomCount);
           
             Reservation reservation = new Reservation(new Date(), checkInDate, checkOutDate, roomCount);
             
@@ -128,6 +121,22 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
     }
     
     @Transactional
+    @Override
+    public void checkInReservation(Long reservationId) throws ReservationNotFoundException, RoomTypeUnavailableException {
+        Reservation reservation = em.find(Reservation.class, reservationId);
+        
+        RoomType roomType = reservation.getRoomType();
+        RoomType managedRoomType = em.find(RoomType.class, roomType.getRoomTypeId());
+            
+            if (managedRoomType.getAvailableRoomsCount() < reservation.getNumOfRooms()) {
+                throw new RoomTypeUnavailableException("Insufficient rooms available for this room type.");
+            }
+
+            managedRoomType.decrementAvailableRoomsCount(reservation.getNumOfRooms());
+    }
+    
+    @Transactional
+    @Override
     public void checkOutReservation(Long reservationId) throws ReservationNotFoundException {
         Reservation reservation = retrieveReservationById(reservationId);
         RoomType roomType = reservation.getRoomType();

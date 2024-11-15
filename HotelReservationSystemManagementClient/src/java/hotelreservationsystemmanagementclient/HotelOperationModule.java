@@ -127,7 +127,7 @@ public class HotelOperationModule {
     public void showSalesManagerMenu(Employee currentEmployee) {
         int option;
         do {
-            System.out.println("\n======Welcome Operation Manager======");
+            System.out.println("\n======Welcome Sales Manager======");
             System.out.println("\n=== Room Type Management ===");
             System.out.println("1. Create New Room Rate");
             System.out.println("2. View Room Rate Details");
@@ -196,13 +196,14 @@ public class HotelOperationModule {
             
             System.out.println("Is there a next higher room type?");
             System.out.println("1. Yes");
-            System.out.print("2. No");
+            System.out.println("2. No");
+            System.out.print(">");
             
             int choice = 0;
-            choice = scanner.nextInt();
+            choice = Integer.parseInt(scanner.nextLine());
             
             if(choice == 1 ) {
-                System.out.print("What is the Room Type Name?");
+                System.out.print("What is the Room Type Name?: " );
                 String nextHighestRoom = scanner.nextLine().trim();
                 if (nextHighestRoom.isEmpty()) {
                     System.out.println("Description cannot be empty.");
@@ -225,7 +226,7 @@ public class HotelOperationModule {
                 System.out.println("An unexpected error occurred. Please try again.");
                 Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, "Error creating Room Type", e);
             }
-        } catch (Exception ex) {
+        } catch (NumberFormatException | RoomTypeNotFoundException ex) {
             System.out.println("An unexpected error occurred. Please try again.");
             Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, "Unexpected error in createNewRoomType", ex);
         }
@@ -284,12 +285,13 @@ public class HotelOperationModule {
             System.out.println("Is there a next higher room type?");
             System.out.println("1. Yes");
             System.out.print("2. No");
+            System.out.print(">");
             
             int choice = 0;
-            choice = scanner.nextInt();
+            choice = Integer.parseInt(scanner.nextLine());
             
             if(choice == 1 ) {
-                System.out.print("What is the Room Type Name?");
+                System.out.print("What is the Room Type Name?: ");
                 String nextHighestRoom = scanner.nextLine().trim();
                 if (nextHighestRoom.isEmpty()) {
                     System.out.println("Description cannot be empty.");
@@ -569,7 +571,7 @@ public class HotelOperationModule {
         }
 
         // Get rate type with validation
-        System.out.print("Enter rate type (NORMAL, PEAK, PROMOTION): ");
+        System.out.print("Enter rate type (PUBLISHED, NORMAL, PEAK, PROMOTION): ");
         String rateTypeString = scanner.nextLine().trim();
         RateTypeEnum rateType;
         try {
@@ -691,13 +693,13 @@ public class HotelOperationModule {
             }
 
             // Update rate type with validation
-            System.out.print("Enter new rate type (NORMAL, PEAK, PROMOTION) (current: " + roomRate.getRateType() + "): ");
+            System.out.print("Enter new rate type (PUBLISHED, NORMAL, PEAK, PROMOTION) (current: " + roomRate.getRateType() + "): ");
             String rateTypeString = scanner.nextLine().trim();
             try {
                 RateTypeEnum rateType = RateTypeEnum.valueOf(rateTypeString.toUpperCase());
                 roomRate.setRateType(rateType);
             } catch (IllegalArgumentException e) {
-                System.out.println("Invalid rate type. Please enter one of the following: NORMAL, PEAK, PROMOTION.");
+                System.out.println("Invalid rate type. Please enter one of the following: PUBLISHED, NORMAL, PEAK, PROMOTION.");
                 return;
             }
 
@@ -756,7 +758,7 @@ public class HotelOperationModule {
     
     public void deleteRoomRate() {
         System.out.print("Enter Room Rate ID to delete: ");
-        Long roomRateId = scanner.nextLong();
+        Long roomRateId = Long.parseLong(scanner.nextLine().trim());
 
         try {
             roomRateSessionBeanRemote.deleteRoomRate(roomRateId);

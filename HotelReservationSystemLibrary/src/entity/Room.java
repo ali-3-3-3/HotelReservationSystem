@@ -46,7 +46,7 @@ public class Room implements Serializable {
     @XmlTransient
     private RoomType roomType;
     
-    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "room", fetch = FetchType.EAGER)
     private List<RoomAllocation> roomAllocations;
 
     public Room() {

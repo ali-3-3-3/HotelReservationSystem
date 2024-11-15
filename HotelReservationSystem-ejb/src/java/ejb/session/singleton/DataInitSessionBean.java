@@ -6,7 +6,6 @@ import ejb.session.stateless.RoomRateSessionBeanLocal;
 import ejb.session.stateless.RoomSessionBeanLocal;
 import ejb.session.stateless.RoomTypeSessionBeanLocal;
 import entity.Employee;
-import entity.Partner;
 import entity.Room;
 import entity.RoomRate;
 import entity.RoomType;
@@ -22,7 +21,6 @@ import util.enumerations.RoomStatusEnum;
 import util.exceptions.EmployeeExistException;
 import util.exceptions.EmployeeNotFoundException;
 import util.exceptions.InputDataValidationException;
-import util.exceptions.PartnerExistException;
 import util.exceptions.RoomExistException;
 import util.exceptions.RoomRateExistException;
 import util.exceptions.RoomTypeExistException;
@@ -91,43 +89,43 @@ public class DataInitSessionBean {
             roomTypeSessionBeanLocal.updateRoomType(grandSuite.getRoomTypeId(), grandSuite);
 
             // RoomRate
-            RoomRate roomRate = new RoomRate("Deluxe Room Published", RateTypeEnum.PUBLISHED, 100, new Date(1672531199000L), new Date(1735689600000L));
+            RoomRate roomRate = new RoomRate("Deluxe Room Published", RateTypeEnum.PUBLISHED, 100, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(deluxeRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Deluxe Room Normal", RateTypeEnum.NORMAL, 50, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Deluxe Room Normal", RateTypeEnum.NORMAL, 50, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(deluxeRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Premier Room Published", RateTypeEnum.PUBLISHED, 200, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Premier Room Published", RateTypeEnum.PUBLISHED, 200, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(premierRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Premier Room Normal", RateTypeEnum.NORMAL, 100, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Premier Room Normal", RateTypeEnum.NORMAL, 100, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(premierRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Family Room Published", RateTypeEnum.PUBLISHED, 300, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Family Room Published", RateTypeEnum.PUBLISHED, 300, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(familyRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Family Room Normal", RateTypeEnum.NORMAL, 150, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Family Room Normal", RateTypeEnum.NORMAL, 150, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(familyRoom);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Junior Suite Published", RateTypeEnum.PUBLISHED, 400, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Junior Suite Published", RateTypeEnum.PUBLISHED, 400, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(juniorSuite);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Junior Suite Normal", RateTypeEnum.NORMAL, 200, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Junior Suite Normal", RateTypeEnum.NORMAL, 200, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(juniorSuite);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Grand Suite Published", RateTypeEnum.PUBLISHED, 500, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Grand Suite Published", RateTypeEnum.PUBLISHED, 500, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(grandSuite);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 
-            roomRate = new RoomRate("Grand Suite Normal", RateTypeEnum.NORMAL, 250, new Date(1672531199000L), new Date(1735689600000L));
+            roomRate = new RoomRate("Grand Suite Normal", RateTypeEnum.NORMAL, 250, new Date(1672531200000L), new Date(1767225600000L));
             roomRate.setRoomType(grandSuite);
             roomRateSessionBeanLocal.createRoomRate(roomRate);
 

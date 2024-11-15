@@ -8,11 +8,16 @@ import entity.Customer;
 import entity.Employee;
 import entity.Guest;
 import entity.Reservation;
+import entity.Room;
+import entity.RoomAllocation;
 import entity.RoomType;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +41,7 @@ public class FrontOfficeModule {
     private GuestSessionBeanRemote guestSessionBeanRemote;
     
     private RoomAllocationSessionBeanRemote roomAllocationSessionBean;
+    
     
     private Employee currentEmployee;
     
@@ -71,7 +77,7 @@ public class FrontOfficeModule {
             OUTER:
             while (response < 1 || response > 12) {
                 System.out.print("> ");
-                response = scanner.nextInt();
+                response = Integer.parseInt(scanner.nextLine());
                 switch (response) {
                     case 1:
                         doCheckInGuest();
@@ -100,17 +106,21 @@ public class FrontOfficeModule {
 
         try {
             System.out.print("Enter Reservation ID> ");
-            Long reservationId = scanner.nextLong();
-            scanner.nextLine(); 
+            Long reservationId = Long.parseLong(scanner.nextLine());
 
             Reservation reservation = reservationSessionBeanRemote.retrieveReservationById(reservationId);
 
             if (reservation.isHasCheckedIn()) {
                 System.out.println("Guest is already checked in.\n");
             } else {
-                reservation.setHasCheckedIn(true);
-                reservationSessionBeanRemote.updateReservation(reservationId, reservation);
-                System.out.println("Guest check-in successful!\n");
+                List<RoomAllocation> roomAllocations = reservation.getRoomAllocations();
+                printRoomAllocationsDetails(roomAllocations);
+                if(roomAllocations != null) {
+                    reservation.setHasCheckedIn(true);
+                    reservationSessionBeanRemote.updateReservation(reservationId, reservation);
+                    reservationSessionBeanRemote.checkInReservation(reservationId);
+                    System.out.println("Guest check-in successful!\n");
+                }
             }
         } catch (ReservationNotFoundException ex) {
             System.out.println("An error occurred: Reservation with the specified ID was not found.\n");
@@ -120,6 +130,8 @@ public class FrontOfficeModule {
         } catch (InputMismatchException ex) {
             System.out.println("Invalid input: Please enter a valid numeric Reservation ID.\n");
             scanner.nextLine(); // Clear invalid input from scanner
+        } catch (RoomTypeUnavailableException ex) {
+            Logger.getLogger(FrontOfficeModule.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -128,9 +140,8 @@ public class FrontOfficeModule {
 
         try {
             System.out.print("Enter Reservation ID> ");
-            Long reservationId = scanner.nextLong();
-            scanner.nextLine(); 
-
+            Long reservationId = Long.parseLong(scanner.nextLine());
+            
             Reservation reservation = reservationSessionBeanRemote.retrieveReservationById(reservationId);
 
             if (reservation.isHasCheckedOut()) {
@@ -315,18 +326,23 @@ public class FrontOfficeModule {
                     customerId, roomType, checkInDate, checkOutDate, roomCount);
 
             if (reservation != null && checkRoomAvailability(checkInDate, checkOutDate, roomType)) {
-                // Call Room Allocation
-                roomAllocationSessionBean.allocateRoomsForWalkInReservation(reservation);
-
                 System.out.println("Reservation successfully created!");
                 System.out.println("Reservation Details:");
+                System.out.println("ReservationID: " + reservation.getReservationId());
                 System.out.println("Room Type: " + roomType.getName());
                 System.out.println("Check-in Date: " + checkInDate);
                 System.out.println("Check-out Date: " + checkOutDate);
                 System.out.println("Number of Rooms: " + roomCount);
-                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType()));
+                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType()) + "per Room");
             } else {
                 System.out.println("Reservation creation failed. Please try again.");
+            }
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Compare only the date part
+            if (sdf.format(checkInDate).equals(sdf.format(new Date()))) {
+                System.out.println("ALLOCATING CURRENT DAY WALK-IN RESERVATION...");
+                roomAllocationSessionBean.allocateRoomsForWalkInReservation(reservation);
+                printRoomAllocationsDetails(reservation.getRoomAllocations());
             }
 
             return reservation;
@@ -349,9 +365,44 @@ public class FrontOfficeModule {
 
     
     public boolean checkRoomAvailability(Date checkInDate, Date checkOutDate, RoomType roomType) {
-        int roomCount = roomType.getRooms().size();
-        int reservationCount = reservationSessionBeanRemote.countReservationsByRoomTypeAndDates(roomType, checkInDate, checkOutDate);
-        return reservationCount < roomCount;  // Returns true if there are rooms available
+        // Retrieve room availability from the server
+        Map<RoomType, List<Room>> availableRoomsByType = roomAllocationSessionBean.initializeRoomAvailability();
+
+        // Check if the room type exists in the availability map
+        if (availableRoomsByType.containsKey(roomType)) {
+            List<Room> availableRooms = availableRoomsByType.get(roomType);
+
+            // Count reservations for the specific room type and dates
+            int reservationCount = reservationSessionBeanRemote.countReservationsByRoomTypeAndDates(roomType, checkInDate, checkOutDate);
+
+            // Check availability: more available rooms than current reservations
+            return reservationCount < availableRooms.size();
+        }
+
+        // Room type is not found in the availability map, consider it unavailable
+        return false;
     }
 
+    
+    
+    public void printRoomAllocationsDetails(List<RoomAllocation> roomAllocations) {
+        if (roomAllocations == null || roomAllocations.isEmpty()) {
+            System.out.println("No room allocations available.");
+            return;
+        }
+
+        for (RoomAllocation roomAllocation : roomAllocations) {
+            System.out.println("Allocation ID: " + roomAllocation.getAllocationId());
+
+            Room room = roomAllocation.getRoom();
+            if (room != null) {
+                System.out.println("Room: " + room.getRoomNumber());
+            } else {
+                System.out.println("Room: Not allocated.");
+            }
+
+            System.out.println("Is Exception: " + (roomAllocation.isIsException() ? "Yes" : "No"));
+            System.out.println("--------------------------------------------");
+        }
+    }
 }

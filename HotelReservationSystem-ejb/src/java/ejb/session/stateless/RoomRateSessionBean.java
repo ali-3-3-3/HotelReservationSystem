@@ -118,8 +118,8 @@ public class RoomRateSessionBean implements RoomRateSessionBeanRemote, RoomRateS
     @Override
     public List<RoomRate> getRoomRatesForRoomType(Long roomTypeId, Date checkInDate, Date checkOutDate) {
         Query query = em.createQuery("SELECT rr FROM RoomRate rr WHERE rr.roomType.roomTypeId = :roomTypeId "
-                + "AND ((rr.validFrom IS NULL AND rr.validTo IS NULL) "
-                + "OR (rr.validFrom <= :checkOutDate AND rr.validTo >= :checkInDate))");
+                + "AND ((rr.startDate IS NULL AND rr.endDate IS NULL) "
+                + "OR (rr.startDate <= :checkOutDate AND rr.endDate >= :checkInDate))");
 
         query.setParameter("roomTypeId", roomTypeId);
         query.setParameter("checkInDate", checkInDate);

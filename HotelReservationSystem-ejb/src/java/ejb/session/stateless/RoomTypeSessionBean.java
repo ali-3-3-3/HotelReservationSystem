@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -74,11 +75,15 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
     
     @Override
     public RoomType retrieveRoomTypeByName(String name) throws RoomTypeNotFoundException {
-        RoomType roomType = em.find(RoomType.class, name);
-        if(roomType != null) {
-            return roomType;
-        } else {
-            throw new RoomTypeNotFoundException("RoomType id " + name.toString() + " does not exist!");
+        try {
+        // Use a JPQL query to find RoomType by name
+        RoomType roomType = em.createQuery("SELECT r FROM RoomType r WHERE r.name = :name", RoomType.class)
+                              .setParameter("name", name)
+                              .getSingleResult();
+        return roomType;
+        } catch (NoResultException e) {
+            // Handle case where no RoomType was found
+            throw new RoomTypeNotFoundException("RoomType with name " + name + " does not exist!");
         }
     }
     

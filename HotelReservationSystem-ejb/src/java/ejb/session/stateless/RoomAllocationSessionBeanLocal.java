@@ -1,9 +1,12 @@
 package ejb.session.stateless;
 
 import entity.Reservation;
+import entity.Room;
 import entity.RoomAllocation;
+import entity.RoomType;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.ejb.Local;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.ReservationAddRoomAllocationException;
@@ -33,4 +36,6 @@ public interface RoomAllocationSessionBeanLocal {
     public void allocateRoomsForWalkInReservation(Reservation reservation) throws RoomAllocationException, ReservationAddRoomAllocationException, ReservationNotFoundException, ReservationUpdateException;
     
     public void allocateRooms(Date checkInDate) throws RoomAllocationNotFoundException, RoomAllocationUpdateException, ReservationAddRoomAllocationException, ReservationUpdateException;
+
+    public Map<RoomType, List<Room>> initializeRoomAvailability();
 }
