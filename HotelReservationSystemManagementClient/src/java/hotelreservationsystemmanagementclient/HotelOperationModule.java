@@ -485,9 +485,6 @@ public class HotelOperationModule {
                     System.out.println("Status: " + allocationException.getResolutionStatus());
                     return allocationException;
                 }).map(allocationException -> {
-                    System.out.println("Employee: " + (allocationException.getEmployee() != null ? allocationException.getEmployee().getUsername() : "Not assigned"));
-                    return allocationException;
-                }).map(allocationException -> {
                     System.out.println("Room Allocation ID: " + (allocationException.getRoomAllocation() != null ? allocationException.getRoomAllocation().getAllocationId() : "Not assigned"));
                     return allocationException;
                 }).forEachOrdered(_item -> {

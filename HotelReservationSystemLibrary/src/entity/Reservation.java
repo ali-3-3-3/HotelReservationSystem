@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,7 +20,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.xml.bind.annotation.XmlTransient;
 import util.exceptions.ReservationAddRoomAllocationException;
 
 @Entity
@@ -59,23 +60,26 @@ public class Reservation implements Serializable {
     @NotNull
     private boolean hasCheckedOut;
     
-    @Column(nullable = false)
     @NotNull
-    @Digits(integer = 1, fraction = 0)
+    @Min(1)
+    @Max(9)
     private int numOfRooms;
 
     @ManyToOne (optional = false, fetch = FetchType.EAGER)
     @JoinColumn (name = "guestId", nullable = false)
     @NotNull
+    @XmlTransient
     private Guest guest;
 
     @ManyToOne (optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "partnerId", nullable = true)
+    @XmlTransient
     private Partner partner;
 
-    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @ManyToOne (optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "roomTypeId", nullable = false)
     @NotNull
+    @XmlTransient
     private RoomType roomType;
     
     @ManyToMany(fetch = FetchType.EAGER)
@@ -83,6 +87,7 @@ public class Reservation implements Serializable {
         name = "reservation_roomRate",
         joinColumns = @JoinColumn(name = "reservationId"),
         inverseJoinColumns = @JoinColumn(name = "roomRateId"))
+    @XmlTransient
     private Set<RoomRate> roomRates;
 
     @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.EAGER)

@@ -12,6 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 public class RoomAllocation implements Serializable {
@@ -30,15 +31,18 @@ public class RoomAllocation implements Serializable {
     
     @ManyToOne (optional = true, fetch = FetchType.EAGER)
     @JoinColumn (name = "roomId", nullable = true)
+    @XmlTransient
     private Room room;
     
     @ManyToOne (optional = false, fetch = FetchType.EAGER)
     @JoinColumn (name = "reservationId", nullable = false)
     @NotNull
+    @XmlTransient
     private Reservation reservation;
     
     @OneToOne
     @JoinColumn(name = "exceptionId", unique = true)
+    @XmlTransient
     private AllocationException exception;
 
     public RoomAllocation() {

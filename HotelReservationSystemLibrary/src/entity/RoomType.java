@@ -43,6 +43,7 @@ public class RoomType implements Serializable {
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "nextHigherRoomTypeId")
+    @XmlTransient
     private RoomType nextHigherRoomType;
     
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY)
@@ -52,7 +53,6 @@ public class RoomType implements Serializable {
     private List<Reservation> reservations;
     
     @OneToMany(mappedBy = "roomType", fetch = FetchType.EAGER)
-    @XmlTransient
     private List<RoomRate> roomRates;
     
     public RoomType() {

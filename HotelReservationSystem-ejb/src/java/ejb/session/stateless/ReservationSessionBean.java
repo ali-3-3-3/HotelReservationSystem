@@ -1,6 +1,5 @@
 package ejb.session.stateless;
 
-import entity.Guest;
 import entity.Reservation;
 import entity.Room;
 import entity.RoomRate;
@@ -25,14 +24,12 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import util.enumerations.RateTypeEnum;
 import util.enumerations.RoomStatusEnum;
-import util.exceptions.CustomerNotFoundException;
 import util.exceptions.GuestNotFoundException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationDeleteException;
 import util.exceptions.ReservationNotFoundException;
 import util.exceptions.ReservationUpdateException;
-import util.exceptions.RoomTypeNotFoundException;
 import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
@@ -41,12 +38,6 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
     @EJB(name = "GuestSessionBeanLocal")
     private GuestSessionBeanLocal guestSessionBeanLocal;
-
-    @EJB(name = "RoomTypeSessionBeanLocal")
-    private RoomTypeSessionBeanLocal roomTypeSessionBeanLocal;
-
-    @EJB
-    private CustomerSessionBeanLocal customerSessionBean;
 
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
     private EntityManager em;
@@ -68,9 +59,10 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
         if (!constraintViolations.isEmpty()) {
             StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
-            for (ConstraintViolation<Reservation> violation : constraintViolations) {
+            constraintViolations.forEach(violation -> {
                 errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
-            }
+            });
+            Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.SEVERE, errorMsg.toString());
             throw new InputDataValidationException(errorMsg.toString());
         }
         
@@ -90,12 +82,12 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
    
     
     @Override
-    @Transactional
     public Reservation createReservationFromSearch(Long customerId, RoomType roomType, Date checkInDate, Date checkOutDate, int roomCount) 
         throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
     
         try {
             if (roomCount < 1 || roomCount > 9) {
+                Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.WARNING, "Invalid room count: " + roomCount);
                 throw new InvalidRoomCountException("You can reserve between 1 and 9 rooms.");
             }
             
@@ -106,17 +98,18 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
                     .getResultList();
             
             if (availableRooms.size() < roomCount) {
+                Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.WARNING, "Requested room type has only " + availableRooms.size() + " rooms available.");
                 throw new RoomTypeUnavailableException("Requested room type has only " + availableRooms.size() + " rooms available.");
             }
             
             
             Reservation reservation = new Reservation(new Date(), checkInDate, checkOutDate, roomCount);
             
-            reservation.setGuest(customerSessionBean.findCustomerById(customerId));
+            reservation.setGuest(guestSessionBeanLocal.retrieveGuestByGuestId(customerId));
             reservation.setRoomType(roomType);
             
             return createReservation(reservation);
-        } catch (CustomerNotFoundException ex) {
+        } catch (GuestNotFoundException ex) {
             Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
@@ -135,7 +128,18 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
     @Transactional
     public Reservation updateReservation(Long reservationId, Reservation updatedReservation) throws ReservationNotFoundException, ReservationUpdateException {
         Reservation reservation = retrieveReservationById(reservationId);
-        
+
+        // Check if the reservation object has any validation violations
+        Set<ConstraintViolation<Reservation>> constraintViolations = validator.validate(updatedReservation);
+
+        if (!constraintViolations.isEmpty()) {
+            StringBuilder errorMsg = new StringBuilder("Input data validation error(s):");
+            constraintViolations.forEach(violation -> {
+                errorMsg.append("\n- ").append(violation.getPropertyPath()).append(": ").append(violation.getMessage());
+            });
+            throw new ReservationUpdateException(errorMsg.toString());
+        }
+
         try {
             reservation.setReservationDate(updatedReservation.getReservationDate());
             reservation.setCheckInDate(updatedReservation.getCheckInDate());
@@ -155,6 +159,7 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
             throw new ReservationUpdateException("Failed to update reservation: " + ex.getMessage());
         }
     }
+
 
     @Override
     @Transactional

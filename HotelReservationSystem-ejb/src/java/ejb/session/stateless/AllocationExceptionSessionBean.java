@@ -82,7 +82,6 @@ public class AllocationExceptionSessionBean implements AllocationExceptionSessio
         try {
             allocationException.setErrorDescription(updatedAllocationException.getErrorDescription());
             allocationException.setResolutionStatus(updatedAllocationException.getResolutionStatus());
-            allocationException.setEmployee(updatedAllocationException.getEmployee());
             allocationException.setRoomAllocation(updatedAllocationException.getRoomAllocation());
 
             em.merge(allocationException);
