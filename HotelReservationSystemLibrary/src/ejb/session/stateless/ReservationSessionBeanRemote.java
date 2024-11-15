@@ -38,6 +38,8 @@ public interface ReservationSessionBeanRemote {
 
     public int countReservationsByRoomTypeAndDates(RoomType roomType, Date checkInDate, Date checkOutDate);
 
-    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation);
+    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType);
+
+    public void checkOutReservation(Long reservationId) throws ReservationNotFoundException;
     
 }

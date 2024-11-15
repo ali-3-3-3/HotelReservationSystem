@@ -112,6 +112,11 @@ public class RoomTypeSessionBean implements RoomTypeSessionBeanRemote, RoomTypeS
         if (roomType == null) {
             throw new RoomTypeNotFoundException("RoomType with ID " + roomTypeId + " not found.");
         }
+        
+        // Set roomType to null for all associated rooms
+        for (Room room : roomType.getRooms()) {
+            room.setRoomType(null);
+        }
 
         try {
             em.remove(roomType);

@@ -2,6 +2,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -40,7 +41,7 @@ public class RoomAllocation implements Serializable {
     @XmlTransient
     private Reservation reservation;
     
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "exceptionId", unique = true)
     @XmlTransient
     private AllocationException exception;

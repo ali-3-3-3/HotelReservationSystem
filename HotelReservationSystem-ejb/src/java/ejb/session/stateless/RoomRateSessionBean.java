@@ -1,6 +1,8 @@
 package ejb.session.stateless;
 
+import entity.Reservation;
 import entity.RoomRate;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javax.ejb.Stateless;
@@ -89,19 +91,40 @@ public class RoomRateSessionBean implements RoomRateSessionBeanRemote, RoomRateS
 
     @Override
     @Transactional
-    public void deleteRoomRate(Long roomRateId) throws RoomRateNotFoundException, RoomRateDeleteException {
-        RoomRate roomRate = retrieveRoomRateById(roomRateId); // Reuse retrieveRoomRateById for not found exception
+    public void deleteRoomRate(Long roomRateId) throws RoomRateNotFoundException {
+        RoomRate roomRate = em.find(RoomRate.class, roomRateId);
 
-        try {
-            em.remove(roomRate);
-        } catch (PersistenceException ex) {
-            throw new RoomRateDeleteException("Failed to delete RoomRate: " + ex.getMessage());
+        if (roomRate == null) {
+            throw new RoomRateNotFoundException("RoomRate not found with ID: " + roomRateId);
         }
+
+        // Unlink the relationship
+        roomRate.getReservations().forEach(reservation -> {
+            reservation.getRoomRates().remove(roomRate);
+        });
+
+        roomRate.getReservations().clear();
+
+        em.remove(roomRate);
     }
+
     
     @Override
     public List<RoomRate> retrieveAllRoomRates() {
         Query query = em.createQuery("SELECT rr FROM RoomRate rr");
+        return query.getResultList();
+    }
+    
+    @Override
+    public List<RoomRate> getRoomRatesForRoomType(Long roomTypeId, Date checkInDate, Date checkOutDate) {
+        Query query = em.createQuery("SELECT rr FROM RoomRate rr WHERE rr.roomType.roomTypeId = :roomTypeId "
+                + "AND ((rr.validFrom IS NULL AND rr.validTo IS NULL) "
+                + "OR (rr.validFrom <= :checkOutDate AND rr.validTo >= :checkInDate))");
+
+        query.setParameter("roomTypeId", roomTypeId);
+        query.setParameter("checkInDate", checkInDate);
+        query.setParameter("checkOutDate", checkOutDate);
+
         return query.getResultList();
     }
 }

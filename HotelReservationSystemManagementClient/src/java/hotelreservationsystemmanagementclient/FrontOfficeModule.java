@@ -138,6 +138,7 @@ public class FrontOfficeModule {
             } else {
                 reservation.setHasCheckedOut(true);
                 reservationSessionBeanRemote.updateReservation(reservationId, reservation);
+                reservationSessionBeanRemote.checkOutReservation(reservationId);
                 System.out.println("Guest check-out successful!\n");
             }
         } catch (ReservationNotFoundException ex) {
@@ -184,7 +185,7 @@ public class FrontOfficeModule {
         Date checkOutDate = null;
 
         try {
-            // Date input handling
+            // Input handling for dates
             while (checkInDate == null) {
                 checkInDate = getDateInput("check-in");
                 if (checkInDate == null) {
@@ -202,7 +203,6 @@ public class FrontOfficeModule {
                 }
             }
 
-            // Fetch available room types
             List<RoomType> availableRoomTypes = roomSessionBeanRemote.searchAvailableRoomTypes(checkInDate, checkOutDate);
 
             if (availableRoomTypes != null && !availableRoomTypes.isEmpty()) {
@@ -210,28 +210,35 @@ public class FrontOfficeModule {
                 for (int i = 0; i < availableRoomTypes.size(); i++) {
                     RoomType roomType = availableRoomTypes.get(i);
                     System.out.println((i + 1) + ": " + roomType.getName());
+                    System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(checkInDate, checkOutDate, roomType));
                 }
 
-                int selection = 0;
-                while (selection < 1 || selection > availableRoomTypes.size()) {
-                    System.out.print("Select a Room Type by number (1 - " + availableRoomTypes.size() + "): ");
-                    try {
-                        selection = Integer.parseInt(scanner.nextLine());
-                    } catch (NumberFormatException ex) {
-                        System.out.println("Invalid input. Please enter a number.");
+                if (currentCustomer != null) {
+                    System.out.print("Would you like to make a reservation? (1: Yes, 2: No): ");
+                    int choice = Integer.parseInt(scanner.nextLine().trim());
+
+                    if (choice == 1) {
+                        int selection = 0;
+                        while (selection < 1 || selection > availableRoomTypes.size()) {
+                            System.out.print("Select a Room Type by number (1 - " + availableRoomTypes.size() + "): ");
+                            try {
+                                selection = Integer.parseInt(scanner.nextLine());
+                            } catch (NumberFormatException ex) {
+                                System.out.println("Invalid input. Please enter a number.");
+                            }
+                        }
+
+                        RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
+                        makeReservation(currentCustomer, selectedRoomType, checkInDate, checkOutDate);
+                    } else {
+                        System.out.println("Reservation process canceled.");
                     }
                 }
-
-                RoomType selectedRoomType = availableRoomTypes.get(selection - 1);
-
-                // Proceed to reservation if a valid selection is made
-                makeReservation(currentCustomer, selectedRoomType, checkInDate, checkOutDate);
-
             } else {
                 System.out.println("No rooms available for the selected dates.");
             }
 
-        } catch (Exception ex) {
+        } catch (NumberFormatException ex) {
             System.err.println("An error occurred while searching for room types: " + ex.getMessage());
         }
     }
@@ -317,7 +324,7 @@ public class FrontOfficeModule {
                 System.out.println("Check-in Date: " + checkInDate);
                 System.out.println("Check-out Date: " + checkOutDate);
                 System.out.println("Number of Rooms: " + roomCount);
-                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation));
+                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType()));
             } else {
                 System.out.println("Reservation creation failed. Please try again.");
             }

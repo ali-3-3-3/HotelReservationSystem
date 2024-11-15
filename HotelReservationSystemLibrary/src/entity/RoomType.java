@@ -41,6 +41,9 @@ public class RoomType implements Serializable {
     @NotNull
     private String description;
     
+    @NotNull
+    private int availableRoomsCount;
+    
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "nextHigherRoomTypeId")
     @XmlTransient
@@ -59,6 +62,7 @@ public class RoomType implements Serializable {
         this.rooms = new ArrayList<>();
         this.reservations = new ArrayList<>();
         this.roomRates = new ArrayList<>();
+        this.availableRoomsCount = 0;
     }
 
     public RoomType(String typeName, int maxOccupancy, String description) {
@@ -81,12 +85,10 @@ public class RoomType implements Serializable {
     }
     
     public void addRoom(Room room) throws RoomTypeAddRoomException {
-        if(room != null && !this.getRooms().contains(room))
-        {
+        if (room != null && !this.getRooms().contains(room)) {
             this.getRooms().add(room);
-        }
-        else
-        {
+            this.incrementAvailableRoomsCount(1);
+        } else {
             throw new RoomTypeAddRoomException("Room already added to room type");
         }
     }
@@ -189,6 +191,26 @@ public class RoomType implements Serializable {
 
     public void setNextHigherRoomType(RoomType nextHigherRoomType) {
         this.nextHigherRoomType = nextHigherRoomType;
+    }
+    
+    public int getAvailableRoomsCount() {
+        return availableRoomsCount;
+    }
+
+    public void setAvailableRoomsCount(int availableRoomsCount) {
+        this.availableRoomsCount = availableRoomsCount;
+    }
+
+    public void decrementAvailableRoomsCount(int count) {
+        if (this.availableRoomsCount >= count) {
+            this.availableRoomsCount -= count;
+        } else {
+            throw new IllegalStateException("Insufficient available rooms.");
+        }
+    }
+
+    public void incrementAvailableRoomsCount(int count) {
+        this.availableRoomsCount += count;
     }
     
 }

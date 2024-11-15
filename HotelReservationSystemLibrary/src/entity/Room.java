@@ -42,8 +42,7 @@ public class Room implements Serializable {
     private RoomStatusEnum roomStatus;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "roomTypeId", nullable = false)
-    @NotNull
+    @JoinColumn(name = "roomTypeId", nullable = true)
     @XmlTransient
     private RoomType roomType;
     

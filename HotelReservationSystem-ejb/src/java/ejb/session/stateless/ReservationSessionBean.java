@@ -38,6 +38,9 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
     @EJB(name = "GuestSessionBeanLocal")
     private GuestSessionBeanLocal guestSessionBeanLocal;
+    
+    @EJB
+    private RoomRateSessionBeanLocal roomRateSessionBeanLocal;
 
     @PersistenceContext(unitName = "HotelReservationSystem-ejbPU")
     private EntityManager em;
@@ -101,12 +104,21 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
                 Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.WARNING, "Requested room type has only " + availableRooms.size() + " rooms available.");
                 throw new RoomTypeUnavailableException("Requested room type has only " + availableRooms.size() + " rooms available.");
             }
+            RoomType managedRoomType = em.find(RoomType.class, roomType.getRoomTypeId());
             
-            
+            if (managedRoomType.getAvailableRoomsCount() < roomCount) {
+                throw new RoomTypeUnavailableException("Insufficient rooms available for this room type.");
+            }
+
+            managedRoomType.decrementAvailableRoomsCount(roomCount);
+          
             Reservation reservation = new Reservation(new Date(), checkInDate, checkOutDate, roomCount);
             
             reservation.setGuest(guestSessionBeanLocal.retrieveGuestByGuestId(customerId));
             reservation.setRoomType(roomType);
+            
+            List<RoomRate> roomRates = roomRateSessionBeanLocal.getRoomRatesForRoomType(roomType.getRoomTypeId(), checkInDate, checkOutDate);
+            reservation.setRoomRates(roomRates);
             
             return createReservation(reservation);
         } catch (GuestNotFoundException ex) {
@@ -114,6 +126,15 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         }
         return null;
     }
+    
+    @Transactional
+    public void checkOutReservation(Long reservationId) throws ReservationNotFoundException {
+        Reservation reservation = retrieveReservationById(reservationId);
+        RoomType roomType = reservation.getRoomType();
+
+        roomType.incrementAvailableRoomsCount(reservation.getNumOfRooms());
+    }
+
 
     @Override
     public Reservation retrieveReservationById(Long reservationId) throws ReservationNotFoundException {
@@ -163,15 +184,23 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
     @Override
     @Transactional
-    public void deleteReservation(Long reservationId) throws ReservationNotFoundException, ReservationDeleteException {
-        Reservation reservation = retrieveReservationById(reservationId);
-        
-        try {
-            em.remove(reservation);
-        } catch (PersistenceException ex) {
-            throw new ReservationDeleteException("Failed to delete reservation: " + ex.getMessage());
+    public void deleteReservation(Long reservationId) throws ReservationNotFoundException {
+        Reservation reservation = em.find(Reservation.class, reservationId);
+
+        if (reservation == null) {
+            throw new ReservationNotFoundException("Reservation not found with ID: " + reservationId);
         }
+
+        // Unlink the relationship
+        reservation.getRoomRates().forEach(roomRate -> {
+            roomRate.getReservations().remove(reservation);
+        });
+
+        reservation.getRoomRates().clear();
+
+        em.remove(reservation);
     }
+
 
     @Override
     public List<Reservation> viewAllReservations() {
@@ -218,21 +247,12 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         double totalFee = 0.0;
         Date currentDate = checkInDate;
 
-        reservation.setRoomRates(new HashSet<>()); 
-
         while (!currentDate.after(checkOutDate)) {
             RoomRate dailyRate = getDailyRateForRoomType(currentDate, roomType);
             if (dailyRate != null) {
                 totalFee += dailyRate.getRatePerNight();
-                reservation.getRoomRates().add(dailyRate);
             }
             currentDate = getNextDate(currentDate);
-        }
-        
-        try {
-            updateReservation(reservation.getReservationId(), reservation);
-        } catch (ReservationNotFoundException | ReservationUpdateException ex) {
-            Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         return totalFee;
@@ -240,7 +260,7 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
     
     @Override
     @Transactional
-    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType, Reservation reservation) {
+    public double calculateTotalReservationFeeForWalkIn(Date checkInDate, Date checkOutDate, RoomType roomType) {
         double totalFee = 0.0;
 
         RoomRate publishedRate = getPublishedRateForRoomType(roomType, checkInDate);

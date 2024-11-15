@@ -1,8 +1,10 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
@@ -47,7 +50,7 @@ public class RoomRate implements Serializable {
     
     @Column(nullable = false)
     @NotNull
-    @Digits(integer = 3, fraction = 0)
+    @Digits(integer = 4, fraction = 0)
     private int ratePerNight;
 
     @ManyToOne (optional = false, cascade = {}, fetch = FetchType.EAGER)
@@ -57,10 +60,10 @@ public class RoomRate implements Serializable {
     private RoomType roomType;
     
     @ManyToMany (mappedBy = "roomRates", cascade = {}, fetch = FetchType.LAZY)
-    private Set<Reservation> reservations;
+    private List<Reservation> reservations;
 
     public RoomRate() {
-        this.reservations = new HashSet<>();
+        this.reservations = new ArrayList<>();
     }
 
     public RoomRate(String name, RateTypeEnum rateType, int pricePerNight, Date startDate, Date endDate) {
@@ -152,11 +155,11 @@ public class RoomRate implements Serializable {
         this.name = name;
     }
 
-    public Set<Reservation> getReservations() {
+    public List<Reservation> getReservations() {
         return reservations;
     }
 
-    public void setReservations(Set<Reservation> reservations) {
+    public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
     }
 }

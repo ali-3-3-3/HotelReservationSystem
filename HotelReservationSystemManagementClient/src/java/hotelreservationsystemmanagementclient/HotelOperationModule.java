@@ -160,7 +160,7 @@ public class HotelOperationModule {
                 default:
                     System.out.println("Invalid option. Please try again.");
             }
-        } while (option != 12);
+        } while (option != 6);
     }
     
     public void createNewRoomType() {
@@ -191,8 +191,28 @@ public class HotelOperationModule {
                 System.out.println("Description cannot be empty.");
                 return;
             }
-
+            
             RoomType newRoomType = new RoomType(name, maxOccupancy, description);
+            
+            System.out.println("Is there a next higher room type?");
+            System.out.println("1. Yes");
+            System.out.print("2. No");
+            
+            int choice = 0;
+            choice = scanner.nextInt();
+            
+            if(choice == 1 ) {
+                System.out.print("What is the Room Type Name?");
+                String nextHighestRoom = scanner.nextLine().trim();
+                if (nextHighestRoom.isEmpty()) {
+                    System.out.println("Description cannot be empty.");
+                    return;
+                }
+                
+                RoomType nextHighestRoomType = roomTypeSessionBeanRemote.retrieveRoomTypeByName(nextHighestRoom);
+                
+                newRoomType.setNextHigherRoomType(nextHighestRoomType);          
+            }     
 
             try {
                 RoomType createdRoomType = roomTypeSessionBeanRemote.createNewRoomType(newRoomType);
@@ -260,6 +280,26 @@ public class HotelOperationModule {
             }
 
             RoomType updatedRoomType = new RoomType(newName, newMaxOccupancy, newDescription);
+            
+            System.out.println("Is there a next higher room type?");
+            System.out.println("1. Yes");
+            System.out.print("2. No");
+            
+            int choice = 0;
+            choice = scanner.nextInt();
+            
+            if(choice == 1 ) {
+                System.out.print("What is the Room Type Name?");
+                String nextHighestRoom = scanner.nextLine().trim();
+                if (nextHighestRoom.isEmpty()) {
+                    System.out.println("Description cannot be empty.");
+                    return;
+                }
+                
+                RoomType nextHighestRoomType = roomTypeSessionBeanRemote.retrieveRoomTypeByName(nextHighestRoom);
+                
+                updatedRoomType.setNextHigherRoomType(nextHighestRoomType);          
+            }  
 
             RoomType roomType = roomTypeSessionBeanRemote.updateRoomType(roomTypeId, updatedRoomType);
             System.out.println("Room Type updated successfully: " + roomType.getName());
@@ -535,7 +575,7 @@ public class HotelOperationModule {
         try {
             rateType = RateTypeEnum.valueOf(rateTypeString.toUpperCase());
         } catch (IllegalArgumentException e) {
-            System.out.println("Invalid rate type. Please enter one of the following: NORMAL, PEAK, PROMOTION.");
+            System.out.println("Invalid rate type. Please enter one of the following: NORMAL, PUBLISHED, PEAK, PROMOTION.");
             return;
         }
 
@@ -550,6 +590,18 @@ public class HotelOperationModule {
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid input for rate per night. Please enter a numeric value.");
+            return;
+        }
+        
+        System.out.print("Enter Room Type ID: ");
+        Long roomTypeId = Long.parseLong(scanner.nextLine().trim());
+
+        RoomType roomType;
+
+        try {
+            roomType = roomTypeSessionBeanRemote.retrieveRoomTypeById(roomTypeId);
+        } catch (RoomTypeNotFoundException ex) {
+            System.out.println("Error: Room Type with ID " + roomTypeId + " not found.");
             return;
         }
 
@@ -585,6 +637,7 @@ public class HotelOperationModule {
         // Create RoomRate
         try {
             RoomRate newRoomRate = new RoomRate(name, rateType, ratePerNight, startDate, endDate);
+            newRoomRate.setRoomType(roomType);
             roomRateSessionBeanRemote.createRoomRate(newRoomRate);
             System.out.println("Room rate created successfully!");
 

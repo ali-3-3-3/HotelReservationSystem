@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -82,13 +83,13 @@ public class Reservation implements Serializable {
     @XmlTransient
     private RoomType roomType;
     
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "reservation_roomRate",
         joinColumns = @JoinColumn(name = "reservationId"),
         inverseJoinColumns = @JoinColumn(name = "roomRateId"))
     @XmlTransient
-    private Set<RoomRate> roomRates;
+    private List<RoomRate> roomRates;
 
     @OneToMany(mappedBy = "reservation", cascade = {}, fetch = FetchType.EAGER)
     private List<RoomAllocation> roomAllocations;
@@ -97,7 +98,7 @@ public class Reservation implements Serializable {
         this.hasCheckedIn = false;
         this.hasCheckedOut = false;
         this.roomAllocations = new ArrayList<>();
-        this.roomRates = new HashSet<>();
+        this.roomRates = new ArrayList<>();
     }
     
     public Reservation(Date reservationDate, Date checkInDate, Date checkOutDate, int numOfRooms) {
@@ -243,11 +244,11 @@ public class Reservation implements Serializable {
         this.hasCheckedOut = hasCheckedOut;
     }
 
-    public Set<RoomRate> getRoomRates() {
+    public List<RoomRate> getRoomRates() {
         return roomRates;
     }
 
-    public void setRoomRates(Set<RoomRate> roomRates) {
+    public void setRoomRates(List<RoomRate> roomRates) {
         this.roomRates = roomRates;
     }
 
