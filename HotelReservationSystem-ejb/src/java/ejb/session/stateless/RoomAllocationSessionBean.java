@@ -215,7 +215,7 @@ public class RoomAllocationSessionBean implements RoomAllocationSessionBeanRemot
         int numOfRooms = reservation.getNumOfRooms();
         RoomAllocation roomAllocation = new RoomAllocation(new Date());
         roomAllocation.setReservation(reservation);
-
+//
         for (int i = 0; i < numOfRooms; i++) {
             try {
                 Room allocatedRoom = allocateRoom(reservedRoomType, availableRoomsByType);
