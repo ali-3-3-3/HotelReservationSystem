@@ -25,27 +25,21 @@ public class Room implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roomId;
-    
     @Column(length = 4, nullable = false, unique = true)
     @Pattern(regexp = "^[0-9]{2}[0-9]{2}$", message = "Room number must follow the format of a two-digit floor and a two-digit sequence, e.g., 2015.")
     @NotNull
     private String roomNumber;
-    
     @Column (length = 2, nullable = false)
     @NotNull
     private int floorNumber;
-    
     @NotNull
     private boolean isClean;
-    
     @NotNull
     private RoomStatusEnum roomStatus;
-
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "roomTypeId", nullable = true)
     @XmlTransient
     private RoomType roomType;
-    
     @OneToMany(mappedBy = "room", fetch = FetchType.EAGER)
     private List<RoomAllocation> roomAllocations;
 

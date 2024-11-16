@@ -55,7 +55,7 @@ public class PartnerWebService {
 
     // Partner Login
     @WebMethod(operationName = "doLogin")
-    public Partner partnerLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
+    public Partner doLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
         partner = partnerSessionBeanLocal.doLogin(email, password);
         
         em.detach(partner);

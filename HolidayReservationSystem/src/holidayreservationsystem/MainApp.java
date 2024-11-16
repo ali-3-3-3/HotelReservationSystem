@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import ws.partner.InputDataValidationException_Exception;
 import ws.partner.InvalidLoginCredentialException_Exception;
 import ws.partner.Partner;
 import ws.partner.PartnerWebService_Service;
@@ -17,6 +18,7 @@ import ws.partner.ReservationNotFoundException_Exception;
 import ws.partner.RoomAllocation;
 import ws.partner.RoomRate;
 import ws.partner.RoomType;
+import ws.partner.RoomTypeNotFoundException_Exception;
 
 /**
  *
@@ -34,7 +36,7 @@ class MainApp {
 
     private Partner currentPartner = null;
 
-    public void runApp() throws InvalidLoginCredentialException_Exception, ReservationNotFoundException_Exception {
+    public void runApp() throws InvalidLoginCredentialException_Exception, ReservationNotFoundException_Exception, RoomTypeNotFoundException_Exception, InputDataValidationException_Exception {
         Scanner scanner = new Scanner(System.in);
         Integer response = 0;
 
@@ -86,7 +88,7 @@ class MainApp {
         String email = "";
         String password = "";
         
-        System.out.println("*** Holiday Reservation System Reservation Client :: Login ***");
+        System.out.println("*** Login ***");
         System.out.print("Enter email> ");
         email = scanner.nextLine().trim();
         System.out.print("Enter password> ");
@@ -95,8 +97,27 @@ class MainApp {
         currentPartner = service.getPartnerWebServicePort().doLogin(email, password);
      }
 
-    private void doSearchHotelRoom() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void doSearchHotelRoom() throws InputDataValidationException_Exception, RoomTypeNotFoundException_Exception {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("***  Search Hotel Room ***\n");
+            Scanner scanner = new Scanner(System.in);
+            Integer response = 0;
+            SimpleDateFormat inputDateFormat = new SimpleDateFormat("d/M/y");
+            SimpleDateFormat outputDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
+            String checkinDate;
+            String checkoutDate;
+            System.out.print("Enter Check-in Date (dd/mm/yyyy)> ");
+            checkinDate = scanner.nextLine().trim();
+            System.out.print("Enter Check-out Date (dd/mm/yyyy)> ");
+            checkoutDate = scanner.nextLine().trim();
+            System.out.print("Enter number of rooms to book> ");
+            Integer noOfRoom = Integer.parseInt(scanner.nextLine().trim());
+            
+            List<RoomType> availableRoomTypes = service.getPartnerWebServicePort().searchRoom(checkinDate, checkoutDate);
+            for (RoomType r : availableRoomTypes) {
+                System.out.printf("%s: %s", r.getRoomTypeId(), r.getName());
+            }
+
     }
 
     private void doViewResDetails() throws ReservationNotFoundException_Exception {
@@ -104,7 +125,7 @@ class MainApp {
         Long reservationId = null;
         Reservation reservation;
         
-        System.out.println("*** Holiday Reservation System Reservation Client :: View Partner Reservation Details ***\n");
+        System.out.println("***  View Partner Reservation Details ***\n");
         System.out.print("Enter reservation ID> ");
         reservationId = new Long(scanner.nextLine().trim());
         
@@ -168,8 +189,18 @@ class MainApp {
     }
 
     private void doReserveHotel() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Scanner scanner = new Scanner(System.in);
+        Long reservationId = null;
+        Reservation reservation;
+        
+        System.out.println("*** Reservation ***\n");
+        System.out.print("Enter reservation ID> ");
+        reservationId = new Long(scanner.nextLine().trim());
+    
     }
+    
+    
 }
     
     

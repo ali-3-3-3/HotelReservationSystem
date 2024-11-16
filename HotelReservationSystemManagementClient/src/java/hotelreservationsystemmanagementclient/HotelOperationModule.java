@@ -239,11 +239,11 @@ public class HotelOperationModule {
 
         try {
             RoomType roomType = roomTypeSessionBeanRemote.retrieveRoomTypeById(roomTypeId);
-            System.out.println("Room Type Details:");
+            System.out.println("//////////////////Room Type Details////////////////////////");
             System.out.println("Name: " + roomType.getName());
             System.out.println("Max Occupancy: " + roomType.getMaxOccupancy());
             System.out.println("Description: " + roomType.getDescription());
-            System.out.println("Next Higher Room Type: " + (roomType.getNextHigherRoomType() != null ? roomType.getNextHigherRoomType().getName() : "None"));
+            System.out.println("Next Higher Room Type: " + roomType.getNextHigherRoomTypeString());
         } catch (RoomTypeNotFoundException e) {
             System.out.println("Error fetching Room Type details: " + e.getMessage());
         }
@@ -284,7 +284,7 @@ public class HotelOperationModule {
             
             System.out.println("Is there a next higher room type?");
             System.out.println("1. Yes");
-            System.out.print("2. No");
+            System.out.println("2. No");
             System.out.print(">");
             
             int choice = 0;
@@ -337,7 +337,7 @@ public class HotelOperationModule {
             } else {
                 System.out.println("List of Room Types:");
                 roomTypes.forEach(roomType -> {
-                    System.out.println("ID: " + roomType.getRoomTypeId() + ", Name: " + roomType.getName());
+                    System.out.println("ID: " + roomType.getRoomTypeId() + ", Name: " + roomType.getName() + ", Next Higher Room Type: " + roomType.getNextHigherRoomTypeString());
                 });
             }
         } catch (Exception e) {

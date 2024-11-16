@@ -36,6 +36,8 @@ public class SystemAdministrationModule {
             System.out.println("3: Create New Partner");
             System.out.println("4: View All Partners");
             System.out.println("5: Exit");
+            
+            System.out.print("> ");
 
             try {
                 response = Integer.parseInt(scanner.nextLine());

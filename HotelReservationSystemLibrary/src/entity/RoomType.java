@@ -73,6 +73,10 @@ public class RoomType implements Serializable {
         this.maxOccupancy = maxOccupancy;
         this.description = description;
     }
+
+ 
+    
+    
     
     public void addReservation(Reservation reservation) throws RoomTypeAddReservationException {
         if(reservation != null && !this.getReservations().contains(reservation))
@@ -84,6 +88,7 @@ public class RoomType implements Serializable {
             throw new RoomTypeAddReservationException("Reservation already added to room type");
         }
     }
+    
     
     public void addRoom(Room room) throws RoomTypeAddRoomException {
         if (room != null && !this.getRooms().contains(room)) {
@@ -189,6 +194,16 @@ public class RoomType implements Serializable {
     public RoomType getNextHigherRoomType() {
         return nextHigherRoomType;
     }
+    
+    public String getNextHigherRoomTypeString() {
+        if (nextHigherRoomType != null) {
+            return nextHigherRoomType.getName();
+        } else {
+            return "none";
+        }
+      
+    }
+
 
     public void setNextHigherRoomType(RoomType nextHigherRoomType) {
         this.nextHigherRoomType = nextHigherRoomType;
