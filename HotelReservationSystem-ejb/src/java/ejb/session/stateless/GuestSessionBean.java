@@ -1,5 +1,6 @@
 package ejb.session.stateless;
 
+import entity.Customer;
 import entity.Guest;
 import java.util.List;
 import java.util.Set;
@@ -73,10 +74,15 @@ public class GuestSessionBean implements GuestSessionBeanRemote, GuestSessionBea
     @Override
     public Guest retrieveGuestByGuestId(Long guestId) throws GuestNotFoundException {
         Guest guest = em.find(Guest.class, guestId);
-        if (guest == null) {
+        Long customerId = guestId;
+        Customer customer = em.find(Customer.class, customerId);
+        if (guest == null && customer == null) {
             throw new GuestNotFoundException("Guest with ID " + guestId + " does not exist!");
-        }
+        } else if (guest == null && customer != null) {
+            return customer;
+        } else {
         return guest;
+        }
     }
     
     @Override

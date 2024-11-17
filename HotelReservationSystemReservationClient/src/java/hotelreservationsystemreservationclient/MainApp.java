@@ -3,8 +3,10 @@ package hotelreservationsystemreservationclient;
 import ejb.session.stateless.CustomerSessionBeanRemote;
 import ejb.session.stateless.ReservationSessionBeanRemote;
 import ejb.session.stateless.RoomSessionBeanRemote;
+import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
 import entity.Reservation;
+import entity.Room;
 import entity.RoomType;
 import java.util.Calendar;
 import java.util.Date;
@@ -13,11 +15,15 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.validation.ConstraintViolationException;
+import static jdk.nashorn.internal.runtime.Debug.id;
+import util.enumerations.RoomStatusEnum;
 import util.exceptions.CustomerExistException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
 import util.exceptions.InvalidRoomCountException;
 import util.exceptions.ReservationNotFoundException;
+import util.exceptions.RoomExistException;
+import util.exceptions.RoomTypeNotFoundException;
 import util.exceptions.RoomTypeUnavailableException;
 import util.exceptions.UnknownPersistenceException;
 
@@ -25,6 +31,7 @@ class MainApp {
     private CustomerSessionBeanRemote customerSessionBeanRemote;
     private ReservationSessionBeanRemote reservationSessionBeanRemote;
     private RoomSessionBeanRemote roomSessionBeanRemote;
+    private RoomTypeSessionBeanRemote roomTypeSessionBeanRemote;
     
     private boolean login = false;
     private Customer currentCustomer;
@@ -35,14 +42,16 @@ class MainApp {
         this.scanner = new Scanner(System.in);
     }
 
-    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote) {
+    public MainApp(CustomerSessionBeanRemote customerSessionBeanRemote, ReservationSessionBeanRemote reservationSessionBeanRemote, RoomSessionBeanRemote roomSessionBeanRemote, RoomTypeSessionBeanRemote roomTypeSessionBeanRemote) {
         this.scanner = new Scanner(System.in);
         this.customerSessionBeanRemote = customerSessionBeanRemote;
         this.reservationSessionBeanRemote = reservationSessionBeanRemote;
         this.roomSessionBeanRemote = roomSessionBeanRemote;
+        this.roomTypeSessionBeanRemote = roomTypeSessionBeanRemote;
     }
 
-    public void runApp() {
+    public void runApp() throws InputDataValidationException, RoomExistException, UnknownPersistenceException, RoomTypeNotFoundException {
+
         while (true) {
             System.out.println("*** Hotel Reservation System ***");
 

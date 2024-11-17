@@ -221,7 +221,7 @@ public class FrontOfficeModule {
                 for (int i = 0; i < availableRoomTypes.size(); i++) {
                     RoomType roomType = availableRoomTypes.get(i);
                     System.out.println((i + 1) + ": " + roomType.getName());
-                    System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(checkInDate, checkOutDate, roomType));
+                    System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkInPre(checkInDate, checkOutDate, roomType));
                 }
 
                 if (currentCustomer != null) {
@@ -333,7 +333,7 @@ public class FrontOfficeModule {
                 System.out.println("Check-in Date: " + checkInDate);
                 System.out.println("Check-out Date: " + checkOutDate);
                 System.out.println("Number of Rooms: " + roomCount);
-                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType()) + "per Room");
+                System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), roomCount));
             } else {
                 System.out.println("Reservation creation failed. Please try again.");
             }

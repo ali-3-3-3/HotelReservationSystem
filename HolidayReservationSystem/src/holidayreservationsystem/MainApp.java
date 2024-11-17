@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Scanner;
 import ws.partner.InputDataValidationException_Exception;
 import ws.partner.InvalidLoginCredentialException_Exception;
+import ws.partner.InvalidRoomCountException_Exception;
 import ws.partner.Partner;
 import ws.partner.PartnerWebService_Service;
 import ws.partner.Reservation;
@@ -19,6 +20,8 @@ import ws.partner.RoomAllocation;
 import ws.partner.RoomRate;
 import ws.partner.RoomType;
 import ws.partner.RoomTypeNotFoundException_Exception;
+import ws.partner.RoomTypeUnavailableException_Exception;
+import ws.partner.UnknownPersistenceException_Exception;
 
 /**
  *
@@ -27,7 +30,7 @@ import ws.partner.RoomTypeNotFoundException_Exception;
 class MainApp {
 
     PartnerWebService_Service service = new PartnerWebService_Service();
-    
+
     private boolean login = false;
 
     public MainApp() {
@@ -58,9 +61,9 @@ class MainApp {
                 switch (response) {
                     case 1:
                         if (currentPartner == null && !login) {
-                                doLogin();
-                                System.out.println("Login successful!");
-                        } 
+                            doLogin();
+                            System.out.println("Login successful!");
+                        }
                         break;
                     case 2:
                         doSearchHotelRoom();
@@ -68,14 +71,14 @@ class MainApp {
                     case 3:
                         doReserveHotel();
                         break;
-                    case 4: 
+                    case 4:
                         doViewResDetails();
                         break;
                     case 5:
                         doViewAllRes();
                         break;
                     case 6:
-                        
+
                         break;
 
                 }
@@ -87,36 +90,37 @@ class MainApp {
         Scanner scanner = new Scanner(System.in);
         String email = "";
         String password = "";
-        
+
         System.out.println("*** Login ***");
         System.out.print("Enter email> ");
         email = scanner.nextLine().trim();
         System.out.print("Enter password> ");
         password = scanner.nextLine().trim();
-        
+
         currentPartner = service.getPartnerWebServicePort().doLogin(email, password);
-     }
+    }
 
     private void doSearchHotelRoom() throws InputDataValidationException_Exception, RoomTypeNotFoundException_Exception {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         System.out.println("***  Search Hotel Room ***\n");
-            Scanner scanner = new Scanner(System.in);
-            Integer response = 0;
-            SimpleDateFormat inputDateFormat = new SimpleDateFormat("d/M/y");
-            SimpleDateFormat outputDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
-            String checkinDate;
-            String checkoutDate;
-            System.out.print("Enter Check-in Date (dd/mm/yyyy)> ");
-            checkinDate = scanner.nextLine().trim();
-            System.out.print("Enter Check-out Date (dd/mm/yyyy)> ");
-            checkoutDate = scanner.nextLine().trim();
-            System.out.print("Enter number of rooms to book> ");
-            Integer noOfRoom = Integer.parseInt(scanner.nextLine().trim());
-            
-            List<RoomType> availableRoomTypes = service.getPartnerWebServicePort().searchRoom(checkinDate, checkoutDate);
-            for (RoomType r : availableRoomTypes) {
-                System.out.printf("%s: %s", r.getRoomTypeId(), r.getName());
-            }
+        Scanner scanner = new Scanner(System.in);
+        Integer response = 0;
+        SimpleDateFormat inputDateFormat = new SimpleDateFormat("d/M/y");
+        SimpleDateFormat outputDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
+        String checkinDate;
+        String checkoutDate;
+        System.out.print("Enter Check-in Date (yyyy-MM-dd)> ");
+        checkinDate = scanner.nextLine().trim();
+        System.out.print("Enter Check-out Date (yyyy-MM-dd)> ");
+        checkoutDate = scanner.nextLine().trim();
+        System.out.print("Enter number of rooms to book> ");
+        Integer noOfRoom = Integer.parseInt(scanner.nextLine().trim());
+        System.out.println("Available Room Types:");
+        List<RoomType> availableRoomTypes = service.getPartnerWebServicePort().searchRoom(checkinDate, checkoutDate);
+        for (RoomType r : availableRoomTypes) {
+            System.out.println((r.getRoomTypeId() + 1) + ". Name: " + r.getName());
+
+        }
 
     }
 
@@ -124,29 +128,32 @@ class MainApp {
         Scanner scanner = new Scanner(System.in);
         Long reservationId = null;
         Reservation reservation;
-        
+
         System.out.println("***  View Partner Reservation Details ***\n");
         System.out.print("Enter reservation ID> ");
         reservationId = new Long(scanner.nextLine().trim());
-        
+
         reservation = service.getPartnerWebServicePort().retrievePartnerReservationsByReservationId(reservationId);
-        System.out.printf("%5s %40s %40s %40s\n","ID", "Reservation Type",  "Check-in Date", "Check-out Date");
-        System.out.printf("%5s %40s %40s %40s\n",reservation.getReservationId(),reservation.getRoomType(), 
-                        reservation.getCheckInDate().toString(), reservation.getCheckOutDate().toString());
-        System.out.println("\n");
+        System.out.printf("%5s %40s %40s %40s\n", "ID", "Reservation Type", "Check-in Date", "Check-out Date");
+        System.out.printf("%5s %40s %40s %40s\n", reservation.getReservationId(), reservation.getRoomType(),
+                reservation.getCheckInDate().toString(), reservation.getCheckOutDate().toString());
+        
+        System.out.println("Reservation Details:");
+        System.out.println("ReservationID: " + reservation.getReservationId());
+        System.out.println("Check In Date: " + reservation.getCheckInDate() + " " + reservation.getCheckInTime());
     }
-    
+
     private void doViewAllRes() {
         Scanner scanner = new Scanner(System.in);
         Long partnerId = null;
         List<Reservation> reservations;
-        
+
         System.out.println("*** Holiday Reservation System Reservation Client :: View Partner Reservation Details ***\n");
         System.out.print("Enter partner ID> ");
         partnerId = new Long(scanner.nextLine().trim());
-        
+
         reservations = service.getPartnerWebServicePort().viewReservationsByPartnerId(partnerId);
-        
+
         reservations.forEach(reservation -> {
             System.out.println("Reservation ID: " + reservation.getReservationId());
             System.out.println("Has Checked In: " + reservation.isHasCheckedIn());
@@ -179,7 +186,8 @@ class MainApp {
         });
         System.out.println("\n");
     }
-        // Helper methods for date and time formatting
+    // Helper methods for date and time formatting
+
     private String formatDate(Date date) {
         return date != null ? new SimpleDateFormat("yyyy-MM-dd").format(date) : "Not specified";
     }
@@ -189,20 +197,57 @@ class MainApp {
     }
 
     private void doReserveHotel() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    try {
         Scanner scanner = new Scanner(System.in);
-        Long reservationId = null;
+        Long typeId;
+        int noOfRooms;
+        Long guestId;
+        String checkinDate, checkoutDate;
         Reservation reservation;
-        
-        System.out.println("*** Reservation ***\n");
-        System.out.print("Enter reservation ID> ");
-        reservationId = new Long(scanner.nextLine().trim());
-    
-    }
-    
-    
-}
-    
-    
-    
 
+        System.out.println("*** Reservation ***\n");
+
+        System.out.print("Select a room type> ");
+        typeId = scanner.nextLong();
+        scanner.nextLine(); // Consume leftover newline
+
+        System.out.print("Enter Check-in Date (yyyy-MM-dd)> ");
+        checkinDate = scanner.nextLine().trim();
+
+        System.out.print("Enter Check-out Date (yyyy-MM-dd)> ");
+        checkoutDate = scanner.nextLine().trim();
+
+        System.out.print("Enter number of rooms> ");
+        noOfRooms = scanner.nextInt();
+        scanner.nextLine(); // Consume leftover newline
+
+        System.out.print("Enter guestId> ");
+        guestId = scanner.nextLong();
+
+        Reservation reserve = service.getPartnerWebServicePort()
+                .reserveNewReservation(checkinDate, checkoutDate, noOfRooms, typeId, guestId);
+
+        reserve.setPartner(currentPartner);
+        if (reserve != null) {
+            System.out.println("Reservation successful!\n");
+            System.out.println("Reservation successfully created!");
+            System.out.println("Reservation Details:");
+            System.out.println("ReservationID: " + reserve.getReservationId());
+        } else {
+            System.out.println("Reservation failed\n");
+        }
+    } catch (InputDataValidationException_Exception ex) {
+        System.err.println("Validation Error: " + ex.getMessage());
+    } catch (InvalidRoomCountException_Exception ex) {
+        System.err.println("Invalid Room Count: " + ex.getMessage());
+    } catch (RoomTypeUnavailableException_Exception ex) {
+        System.err.println("Room Unavailable: " + ex.getMessage());
+    } catch (UnknownPersistenceException_Exception ex) {
+        System.err.println("Persistence Error: " + ex.getMessage());
+    } catch (Exception ex) {
+        System.err.println("An unexpected error occurred: " + ex.getMessage());
+    }
+}
+
+
+}

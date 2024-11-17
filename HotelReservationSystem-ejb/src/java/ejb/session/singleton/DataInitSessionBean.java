@@ -61,7 +61,7 @@ public class DataInitSessionBean {
 
     public void initialiseData() {
         try {
-           
+           System.out.println("Singleton initialized successfully.");
             
             // Employee
             employeeSessionBeanLocal.createNewEmployee(new Employee("sysadmin", "password", EmployeeRoleEnum.SYSTEMADMINISTRATOR, "admin1@gmail.com"));

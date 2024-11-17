@@ -63,7 +63,7 @@ public class RoomType implements Serializable {
         this.rooms = new ArrayList<>();
         this.reservations = new ArrayList<>();
         this.roomRates = new ArrayList<>();
-        this.availableRoomsCount = 0;
+        this.availableRoomsCount = 100;
     }
 
     public RoomType(String typeName, int maxOccupancy, String description) {

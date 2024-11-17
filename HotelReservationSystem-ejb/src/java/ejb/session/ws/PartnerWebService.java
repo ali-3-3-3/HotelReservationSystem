@@ -1,13 +1,15 @@
 package ejb.session.ws;
 
 import ejb.session.stateless.CustomerSessionBeanLocal;
+import ejb.session.stateless.GuestSessionBeanLocal;
 import ejb.session.stateless.PartnerSessionBeanLocal;
+import ejb.session.stateless.ReservationSessionBean;
 import ejb.session.stateless.ReservationSessionBeanLocal;
 import ejb.session.stateless.RoomSessionBeanLocal;
 import ejb.session.stateless.RoomTypeSessionBeanLocal;
+import entity.Guest;
 import entity.Partner;
 import entity.Reservation;
-import entity.Room;
 import entity.RoomRate;
 import entity.RoomType;
 import java.text.ParseException;
@@ -24,11 +26,15 @@ import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import util.enumerations.RateTypeEnum;
 import util.exceptions.*;
 
 @WebService(serviceName = "PartnerWebService")
 @Stateless(name = "PartnerWebService")
 public class PartnerWebService {
+
+    @EJB(name = "GuestSessionBeanLocal")
+    private GuestSessionBeanLocal guestSessionBeanLocal;
 
     @EJB(name = "RoomSessionBeanLocal")
     private RoomSessionBeanLocal roomSessionBeanLocal;
@@ -47,17 +53,16 @@ public class PartnerWebService {
 
     @EJB
     private ReservationSessionBeanLocal reservationSessionBeanLocal;
-    
-    private Partner partner;
-    
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    
 
-    // Partner Login
+    private Partner partner;
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+//   // Partner Login
     @WebMethod(operationName = "doLogin")
     public Partner doLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
         partner = partnerSessionBeanLocal.doLogin(email, password);
-        
+
         em.detach(partner);
         partner.getReservations().stream().map(reservation -> {
             em.detach(reservation);
@@ -80,12 +85,12 @@ public class PartnerWebService {
     // Partner Search Room
     @WebMethod(operationName = "searchRoom")
     public List<RoomType> searchRoom(
-            @WebParam(name = "checkinDateString") String checkinDateString, 
-            @WebParam(name = "checkoutDateString") String checkoutDateString) 
+            @WebParam(name = "checkinDateString") String checkinDateString,
+            @WebParam(name = "checkoutDateString") String checkoutDateString)
             throws RoomTypeNotFoundException, InputDataValidationException {
-        
+
         dateFormat.setLenient(false);
-        
+
         Date checkinDate;
         Date checkoutDate;
 
@@ -116,11 +121,11 @@ public class PartnerWebService {
                 r.setRoomRates(null);
             });
             return availableRoomTypes != null ? availableRoomTypes : new ArrayList<>();  // Return an empty list instead of null
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             // Log unexpected exception and throw a general input validation exception
             System.err.println("An unexpected error occurred while searching for room types: " + ex.getMessage());
             throw new InputDataValidationException("An unexpected error occurred. Please try again later.");
-        } 
+        }
     }
 
     // Partner reserve room 
@@ -133,13 +138,12 @@ public class PartnerWebService {
             @WebParam(name = "guestId") Long guestId)
             throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
 
-        // Validate number of rooms
         if (noOfRoom == null || noOfRoom <= 0) {
             throw new InvalidRoomCountException("Number of rooms must be greater than zero.");
         }
-        
+
         dateFormat.setLenient(false);
-        
+
         Date checkinDate;
         Date checkoutDate;
 
@@ -147,7 +151,6 @@ public class PartnerWebService {
             checkinDate = dateFormat.parse(checkinDateString);
             checkoutDate = dateFormat.parse(checkoutDateString);
 
-            // Ensure check-out date is after check-in date
             if (checkoutDate.before(checkinDate)) {
                 throw new InputDataValidationException("Check-out date must be after check-in date.");
             }
@@ -155,7 +158,6 @@ public class PartnerWebService {
             throw new InputDataValidationException("Invalid date format. Please use yyyy-MM-dd.");
         }
 
-        // Retrieve room type
         RoomType roomType;
         try {
             roomType = roomTypeSessionBeanLocal.retrieveRoomTypeById(roomTypeId);
@@ -165,40 +167,40 @@ public class PartnerWebService {
             roomType.setRoomRates(null);
             roomType.setRooms(null);
         } catch (RoomTypeNotFoundException ex) {
-            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Room type not found: " + roomTypeId, ex);
             throw new InputDataValidationException("Specified room type does not exist.");
         }
 
-        // Create reservation
         Reservation reservation;
         try {
-            reservation = reservationSessionBeanLocal.createReservationFromSearch(guestId, roomType, checkinDate, checkoutDate, noOfRoom);
+            reservation = reservationSessionBeanLocal.createReservationFromSearchForPartner(guestId, roomType, checkinDate, checkoutDate, noOfRoom, partner);
+            if (reservation == null) {
+                throw new UnknownPersistenceException("Failed to create reservation. Please check input data.");
+            }
             
-        } catch (InputDataValidationException | InvalidRoomCountException | RoomTypeUnavailableException | UnknownPersistenceException ex) {
-            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Error creating reservation", ex);
-            throw new UnknownPersistenceException("An error occurred while creating the reservation. Please try again later.");
-        }
+            
 
-        // Associate reservation with partner and update reservation
-        try {
-            reservation.setPartner(partner); // Ensure 'partner' is properly defined in this context
+            // Ensure partner is set
+            if (partner == null) {
+                throw new UnknownPersistenceException("Partner information is missing. Please log in again.");
+            }
+            reservation.setPartner(partner);
+
             reservationSessionBeanLocal.updateReservation(reservation.getReservationId(), reservation);
+
             em.detach(reservation);
             reservation.setGuest(null);
             reservation.setPartner(null);
             reservation.setRoomType(null);
             reservation.setRoomAllocations(null);
             reservation.setRoomRates(null);
-        } catch (ReservationNotFoundException | ReservationUpdateException ex) {
-            Logger.getLogger(PartnerWebService.class.getName()).log(Level.SEVERE, "Error updating reservation", ex);
-            throw new UnknownPersistenceException("An error occurred while updating the reservation. Please try again later.");
+
+        } catch (Exception ex) {
+            throw new UnknownPersistenceException("Error occurred while updating the reservation: " + ex.getMessage());
         }
 
-        System.out.println("Reservation created successfully with ID: " + reservation.getReservationId());
         return reservation;
     }
-    
-    
+
     // View Partner Reservation Details
     @WebMethod(operationName = "viewReservationsByPartnerId")
     public List<Reservation> viewReservationsByPartnerId(@WebParam(name = "partnerId") Long partnerId) {
@@ -232,4 +234,15 @@ public class PartnerWebService {
 
         return reservation;
     }
+
+    @WebMethod(operationName = "retrieveGuestByGuestId")
+    public Guest retrieveGuestByGuestId(@WebParam(name = "guestId") Long guestId) throws GuestNotFoundException {
+        Guest guest = guestSessionBeanLocal.retrieveGuestByGuestId(guestId);
+
+        em.detach(guest);
+        guest.setReservations(null);
+
+        return guest;
+    }
+
 }

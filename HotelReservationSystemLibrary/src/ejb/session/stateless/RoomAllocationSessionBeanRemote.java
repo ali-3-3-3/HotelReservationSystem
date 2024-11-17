@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.Remote;
+import javax.ejb.Stateless;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.ReservationAddRoomAllocationException;
 import util.exceptions.ReservationNotFoundException;
@@ -17,6 +18,7 @@ import util.exceptions.RoomAllocationException;
 import util.exceptions.RoomAllocationNotFoundException;
 import util.exceptions.RoomAllocationUpdateException;
 import util.exceptions.UnknownPersistenceException;
+
 
 @Remote
 public interface RoomAllocationSessionBeanRemote {
