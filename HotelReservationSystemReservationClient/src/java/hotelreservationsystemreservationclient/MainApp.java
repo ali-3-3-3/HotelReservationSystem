@@ -156,6 +156,7 @@ class MainApp {
             Customer customer = new Customer(name, email, phone, username, password);
 
             customerSessionBeanRemote.createNewCustomer(customer);
+            System.out.print("Registration Success! ");
         
         } catch (InputDataValidationException | UnknownPersistenceException | CustomerExistException ex) {
             System.out.println("An error occurred during registration: " + ex.getMessage());
