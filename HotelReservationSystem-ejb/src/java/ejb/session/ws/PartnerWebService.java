@@ -3,14 +3,12 @@ package ejb.session.ws;
 import ejb.session.stateless.CustomerSessionBeanLocal;
 import ejb.session.stateless.GuestSessionBeanLocal;
 import ejb.session.stateless.PartnerSessionBeanLocal;
-import ejb.session.stateless.ReservationSessionBean;
 import ejb.session.stateless.ReservationSessionBeanLocal;
 import ejb.session.stateless.RoomSessionBeanLocal;
 import ejb.session.stateless.RoomTypeSessionBeanLocal;
 import entity.Guest;
 import entity.Partner;
 import entity.Reservation;
-import entity.RoomRate;
 import entity.RoomType;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,9 +22,10 @@ import javax.jws.WebService;
 import javax.ejb.Stateless;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
+import javax.jws.WebResult;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import util.enumerations.RateTypeEnum;
+import javax.xml.datatype.XMLGregorianCalendar;
 import util.exceptions.*;
 
 @WebService(serviceName = "PartnerWebService")
@@ -58,56 +57,32 @@ public class PartnerWebService {
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-//   // Partner Login
+// Partner Login
     @WebMethod(operationName = "doLogin")
-    public Partner doLogin(@WebParam(name = "email") String email, @WebParam(name = "password") String password) throws InvalidLoginCredentialException {
-        partner = partnerSessionBeanLocal.doLogin(email, password);
-
-        em.detach(partner);
-        partner.getReservations().stream().map(reservation -> {
-            em.detach(reservation);
-            return reservation;
-        }).map(reservation -> {
-            reservation.setPartner(null);
-            return reservation;
-        }).map(reservation -> {
-            reservation.setGuest(null);
-            return reservation;
-        }).map(reservation -> {
-            reservation.setPartner(null);
-            return reservation;
-        }).forEachOrdered(reservation -> {
-            reservation.setRoomType(null);
-        });
-        return partner;
+    @WebResult(name = "doLoginResponse")
+    public Partner doLogin(
+            @WebParam(name = "email") String email,
+            @WebParam(name = "password") String password
+    ) throws InvalidLoginCredentialException {
+        return partnerSessionBeanLocal.doLogin(email, password);
     }
 
-    // Partner Search Room
+    // Partner Search Room - the wsdl keeps failing to update whenever I make changes. 
     @WebMethod(operationName = "searchRoom")
     public List<RoomType> searchRoom(
-            @WebParam(name = "checkinDateString") String checkinDateString,
-            @WebParam(name = "checkoutDateString") String checkoutDateString)
+            @WebParam(name = "checkInDate") Date checkInDate,
+            @WebParam(name = "checkOutDate") Date checkOutDate)
             throws RoomTypeNotFoundException, InputDataValidationException {
 
         dateFormat.setLenient(false);
 
-        Date checkinDate;
-        Date checkoutDate;
-
-        try {
-            checkinDate = dateFormat.parse(checkinDateString);
-            checkoutDate = dateFormat.parse(checkoutDateString);
-
-            // Ensure check-out date is after check-in date
-            if (checkoutDate.before(checkinDate)) {
-                throw new InputDataValidationException("Check-out date must be after check-in date.");
-            }
-        } catch (ParseException e) {
-            throw new InputDataValidationException("Invalid date format. Please use yyyy-MM-dd.");
+        // Ensure check-out date is after check-in date
+        if (checkOutDate.before(checkInDate)) {
+            throw new InputDataValidationException("Check-out date must be after check-in date.");
         }
 
         try {
-            List<RoomType> availableRoomTypes = roomSessionBeanLocal.searchAvailableRoomTypes(checkinDate, checkoutDate);
+            List<RoomType> availableRoomTypes = roomSessionBeanLocal.searchAvailableRoomTypes(checkInDate, checkOutDate);
             availableRoomTypes.stream().map(r -> {
                 em.detach(r);
                 return r;
@@ -128,14 +103,45 @@ public class PartnerWebService {
         }
     }
 
-    // Partner reserve room 
+    private Date convertToDate(XMLGregorianCalendar xmlGregorianCalendar) {
+        if (xmlGregorianCalendar == null) {
+            return null;
+        }
+        return xmlGregorianCalendar.toGregorianCalendar().getTime();
+    }
+
+@WebMethod(operationName = "calculatePre")
+public double calculatePre(
+        @WebParam(name = "checkInDate") XMLGregorianCalendar checkInDate,
+        @WebParam(name = "checkOutDate") XMLGregorianCalendar checkOutDate,
+        @WebParam(name = "roomType") RoomType roomType) {
+
+    if (checkInDate == null || checkOutDate == null || roomType == null) {
+        throw new IllegalArgumentException("Check-in date, check-out date, and room type must not be null.");
+    }
+
+    Date checkIn = convertToDate(checkInDate);
+    Date checkOut = convertToDate(checkOutDate);
+
+    try {
+        return reservationSessionBeanLocal.calculateTotalReservationFeeForWalkInPre(checkIn, checkOut, roomType);
+    } catch (Exception e) {
+        Logger.getLogger(PartnerWebService.class.getName())
+              .log(Level.SEVERE, "Error in calculatePre: {0}", e.getMessage());
+        throw new RuntimeException("Error calculating pre-payment fee: " + e.getMessage(), e);
+    }
+}
+
+
+    // Partner reserve room - the wsdl keeps failing to update whenever I make changes. 
     @WebMethod(operationName = "reserveNewReservation")
+    @WebResult(targetNamespace = "")
     public Reservation reserveNewReservation(
-            @WebParam(name = "checkinDate") String checkinDateString,
-            @WebParam(name = "checkoutDate") String checkoutDateString,
-            @WebParam(name = "noOfRoom") Integer noOfRoom,
-            @WebParam(name = "roomTypeId") Long roomTypeId,
-            @WebParam(name = "guestId") Long guestId)
+            @WebParam(name = "checkinDate", targetNamespace = "") String checkinDateString,
+            @WebParam(name = "checkoutDate", targetNamespace = "") String checkoutDateString,
+            @WebParam(name = "noOfRoom", targetNamespace = "") Integer noOfRoom,
+            @WebParam(name = "roomTypeId", targetNamespace = "") Long roomTypeId,
+            @WebParam(name = "guestId", targetNamespace = "") Long guestId)
             throws RoomTypeUnavailableException, InvalidRoomCountException, InputDataValidationException, UnknownPersistenceException {
 
         if (noOfRoom == null || noOfRoom <= 0) {
@@ -176,8 +182,6 @@ public class PartnerWebService {
             if (reservation == null) {
                 throw new UnknownPersistenceException("Failed to create reservation. Please check input data.");
             }
-            
-            
 
             // Ensure partner is set
             if (partner == null) {

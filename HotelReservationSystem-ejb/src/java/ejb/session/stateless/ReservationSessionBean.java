@@ -97,8 +97,8 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
         }
         
         Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.INFO,
-                "Creating reservation with guestId: {0}, roomType: {1}, checkInDate: {2}, checkOutDate: {3}, roomCount: {4}",
-                new Object[]{customerId, roomType.getRoomTypeId(), checkInDate, checkOutDate, roomCount});
+                "Creating reservation with guestId: {0}, roomType: {1}, checkInDate: {2}, checkOutDate: {3}, roomCount: {4}, partner: {5}",
+                new Object[]{customerId, roomType.getRoomTypeId(), checkInDate, checkOutDate, roomCount, partner.getSystemName()});
         
         try {
             // Retrieve guest
@@ -129,10 +129,11 @@ public class ReservationSessionBean implements ReservationSessionBeanRemote, Res
 
             // Create reservation
             Reservation reservation = new Reservation(new Date(), checkInDate, checkOutDate, roomCount);
+            reservation.setPartner(partner);
             reservation.setGuest(guest);
             reservation.setRoomType(roomType);
             reservation.setRoomRates(roomRates);
-            reservation.setPartner(partner);
+            
             
             Logger.getLogger(ReservationSessionBean.class.getName()).log(Level.INFO, "Reservation initialized: {0}", reservation);
 

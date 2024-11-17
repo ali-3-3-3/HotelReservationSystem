@@ -133,41 +133,41 @@ public class RoomSessionBean implements RoomSessionBeanRemote, RoomSessionBeanLo
     }
     
     @Override
-    public List<RoomType> searchAvailableRoomTypes(Date checkInDate, Date checkOutDate) {
-        if (checkInDate == null || checkOutDate == null) {
-            throw new IllegalArgumentException("Check-in and check-out dates must not be null.");
-        }
+public List<RoomType> searchAvailableRoomTypes(Date checkInDate, Date checkOutDate) {
+    if (checkInDate == null || checkOutDate == null) {
+        throw new IllegalArgumentException("Check-in and check-out dates must not be null.");
+    }
 
-        if (!checkInDate.before(checkOutDate)) {
-            throw new IllegalArgumentException("Check-in date must be before check-out date.");
-        }
+    if (!checkInDate.before(checkOutDate)) {
+        throw new IllegalArgumentException("Check-in date must be before check-out date.");
+    }
 
-        List<Room> rooms;
-        try {
-            rooms = em.createQuery("SELECT r FROM Room r", Room.class).getResultList();
-        } catch (Exception ex) {
-            throw new PersistenceException("An error occurred while retrieving room data.", ex);
-        }
+    try {
+        // Query for available rooms
+        List<Room> rooms = em.createQuery("SELECT r FROM Room r", Room.class).getResultList();
 
+        // Find available room types
         Set<RoomType> availableRoomTypes = new HashSet<>();
-
         for (Room room : rooms) {
-            try {
-                boolean isAvailable = room.getRoomAllocations().stream().noneMatch(roomAllocation -> {
-                    Date allocationStart = roomAllocation.getReservation().getCheckInDate();
-                    Date allocationEnd = roomAllocation.getReservation().getCheckOutDate();
-                    return (checkInDate.before(allocationEnd) && checkOutDate.after(allocationStart));
-                });
+            boolean isAvailable = room.getRoomAllocations().stream().noneMatch(roomAllocation -> {
+                Date allocationStart = roomAllocation.getReservation().getCheckInDate();
+                Date allocationEnd = roomAllocation.getReservation().getCheckOutDate();
+                return checkInDate.before(allocationEnd) && checkOutDate.after(allocationStart);
+            });
 
-                if (isAvailable) {
-                    availableRoomTypes.add(room.getRoomType());
-                }
-            } catch (NullPointerException npe) {
-                System.err.println("Warning: A room allocation or reservation has incomplete data. Skipping this room.");
-            } catch (Exception e) {
-                throw new PersistenceException("An error occurred while checking room availability.", e);
+            if (isAvailable) {
+                availableRoomTypes.add(room.getRoomType());
             }
         }
+
         return new ArrayList<>(availableRoomTypes);
+
+    } catch (Exception ex) {
+        // Log the exception details
+        System.err.println("Error in searchAvailableRoomTypes: " + ex.getMessage());
+        ex.printStackTrace();
+        throw new RuntimeException("Error retrieving available room types.", ex);
     }
+}
+
 }

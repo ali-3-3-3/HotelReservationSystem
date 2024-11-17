@@ -6,7 +6,6 @@ import ejb.session.stateless.RoomSessionBeanRemote;
 import ejb.session.stateless.RoomTypeSessionBeanRemote;
 import entity.Customer;
 import entity.Reservation;
-import entity.Room;
 import entity.RoomType;
 import java.util.Calendar;
 import java.util.Date;
@@ -15,8 +14,6 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.validation.ConstraintViolationException;
-import static jdk.nashorn.internal.runtime.Debug.id;
-import util.enumerations.RoomStatusEnum;
 import util.exceptions.CustomerExistException;
 import util.exceptions.InputDataValidationException;
 import util.exceptions.InvalidLoginCredentialException;
@@ -58,13 +55,13 @@ class MainApp {
             if (currentCustomer == null && !login) {
                 System.out.println("1: Login");
                 System.out.println("2: Register");
-                System.out.println("3: Search Hotel Room!");
-                System.out.println("4: Exit");
+                System.out.println("3: Exit");
             } else {
                 System.out.println("1: Reserve Hotel Room!");
                 System.out.println("2: View all my reservations");
                 System.out.println("3: View reservation details");
-                System.out.println("4: Logout");
+                System.out.println("4: Search Hotel Room!");
+                System.out.println("5: Logout");
             }
 
             System.out.print("> ");
@@ -81,7 +78,7 @@ class MainApp {
                             System.out.println("Invalid login credential: " + ex.getMessage());
                         }
                     } else if (currentCustomer != null && login) {
-                        searchHotelRooms();
+                        searchHotelRooms() ;
                     }
                     break;
 
@@ -99,14 +96,18 @@ class MainApp {
 
                 case 3:
                     if (currentCustomer == null && !login) {
-                        searchHotelRooms();
+                        break;
                     } else if (currentCustomer != null && login) {
                         viewReservationDetails();
                     }
                     break;
 
                 case 4:
-                    return; // Exit the application
+                    searchHotelRooms();
+                    break;
+                case 5: 
+                    doLogout();
+                    break;
 
                 default:
                     System.out.println("Invalid option, please try again.");
@@ -195,6 +196,8 @@ class MainApp {
                 for (int i = 0; i < availableRoomTypes.size(); i++) {
                     RoomType roomType = availableRoomTypes.get(i);
                     System.out.println((i + 1) + ": " + roomType.getName());
+                    System.out.println("Total cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkInPre(checkInDate, checkOutDate, roomType));
+               
                 }
 
                 if (currentCustomer != null && login == true) {
@@ -226,6 +229,8 @@ class MainApp {
             System.err.println("An error occurred while searching for room types: " + ex.getMessage());
         }
     }
+    
+    
     
     private Date getDateInput(String dateType) {
         int year = 0, month = 0, day = 0;
@@ -305,6 +310,7 @@ class MainApp {
                 System.out.println("Check-in Date: " + checkInDate);
                 System.out.println("Check-out Date: " + checkOutDate);
                 System.out.println("Number of Rooms: " + roomCount);
+                System.out.println("Total Cost: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(checkInDate, checkOutDate, roomType, roomCount));
             } else {
                 System.out.println("Reservation creation failed. Please try again.");
             }
@@ -347,11 +353,10 @@ class MainApp {
             } else {
                 System.out.println("Reservations (Basic Info):");
                 for (Reservation reservation : reservations) {
-                    System.out.println("Reservation ID: " + reservation.getReservationId() + 
-                                       ", Check-In: " + reservation.getCheckInDate() + 
-                                       ", Room Type: " + reservation.getRoomType().getName() +
-                                       ", Room Rates: " + reservation.getRoomRates() +
-                                       ", Total Cost: " + reservationSessionBeanRemote.calculateTotalReservationFee(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation));
+                    System.out.println("Reservation ID: " + reservation.getReservationId() + "\n" +
+                                       "Check-In: " + reservation.getCheckInDate() + "\n" +
+                                       "Room Type: " + reservation.getRoomType().getName() + "\n" +
+                                       "Room Rate: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation.getNumOfRooms()));
                 }
             }
         } catch (Exception ex) {
@@ -376,8 +381,7 @@ class MainApp {
             System.out.println("Reservation Date: " + reservation.getReservationDate());
             System.out.println("Checked-In: " + (reservation.isHasCheckedIn() ? "Yes" : "No"));
             System.out.println("Checked-Out: " + (reservation.isHasCheckedOut() ? "Yes" : "No"));
-            System.out.println(", Room Rates: " + reservation.getRoomRates());
-            System.out.println("Total Cost: " + reservationSessionBeanRemote.calculateTotalReservationFee(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation));
+            System.out.println("Room Rate: " + reservationSessionBeanRemote.calculateTotalReservationFeeForWalkIn(reservation.getCheckInDate(), reservation.getCheckOutDate(), reservation.getRoomType(), reservation.getNumOfRooms()));
 
         } catch (ReservationNotFoundException ex) {
             System.out.println("Reservation not found: " + ex.getMessage());

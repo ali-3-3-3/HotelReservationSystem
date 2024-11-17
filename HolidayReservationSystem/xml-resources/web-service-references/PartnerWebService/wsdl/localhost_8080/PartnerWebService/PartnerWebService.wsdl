@@ -10,33 +10,6 @@
 <message name="viewReservationsByPartnerIdResponse">
 <part name="parameters" element="tns:viewReservationsByPartnerIdResponse"/>
 </message>
-<message name="searchRoom">
-<part name="parameters" element="tns:searchRoom"/>
-</message>
-<message name="searchRoomResponse">
-<part name="parameters" element="tns:searchRoomResponse"/>
-</message>
-<message name="RoomTypeNotFoundException">
-<part name="fault" element="tns:RoomTypeNotFoundException"/>
-</message>
-<message name="InputDataValidationException">
-<part name="fault" element="tns:InputDataValidationException"/>
-</message>
-<message name="reserveNewReservation">
-<part name="parameters" element="tns:reserveNewReservation"/>
-</message>
-<message name="reserveNewReservationResponse">
-<part name="parameters" element="tns:reserveNewReservationResponse"/>
-</message>
-<message name="RoomTypeUnavailableException">
-<part name="fault" element="tns:RoomTypeUnavailableException"/>
-</message>
-<message name="InvalidRoomCountException">
-<part name="fault" element="tns:InvalidRoomCountException"/>
-</message>
-<message name="UnknownPersistenceException">
-<part name="fault" element="tns:UnknownPersistenceException"/>
-</message>
 <message name="retrieveGuestByGuestId">
 <part name="parameters" element="tns:retrieveGuestByGuestId"/>
 </message>
@@ -55,6 +28,39 @@
 <message name="InvalidLoginCredentialException">
 <part name="fault" element="tns:InvalidLoginCredentialException"/>
 </message>
+<message name="searchRoom">
+<part name="parameters" element="tns:searchRoom"/>
+</message>
+<message name="searchRoomResponse">
+<part name="parameters" element="tns:searchRoomResponse"/>
+</message>
+<message name="RoomTypeNotFoundException">
+<part name="fault" element="tns:RoomTypeNotFoundException"/>
+</message>
+<message name="InputDataValidationException">
+<part name="fault" element="tns:InputDataValidationException"/>
+</message>
+<message name="calculatePre">
+<part name="parameters" element="tns:calculatePre"/>
+</message>
+<message name="calculatePreResponse">
+<part name="parameters" element="tns:calculatePreResponse"/>
+</message>
+<message name="reserveNewReservation">
+<part name="parameters" element="tns:reserveNewReservation"/>
+</message>
+<message name="reserveNewReservationResponse">
+<part name="parameters" element="tns:reserveNewReservationResponse"/>
+</message>
+<message name="RoomTypeUnavailableException">
+<part name="fault" element="tns:RoomTypeUnavailableException"/>
+</message>
+<message name="InvalidRoomCountException">
+<part name="fault" element="tns:InvalidRoomCountException"/>
+</message>
+<message name="UnknownPersistenceException">
+<part name="fault" element="tns:UnknownPersistenceException"/>
+</message>
 <message name="retrievePartnerReservationsByReservationId">
 <part name="parameters" element="tns:retrievePartnerReservationsByReservationId"/>
 </message>
@@ -69,20 +75,6 @@
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/viewReservationsByPartnerIdRequest" message="tns:viewReservationsByPartnerId"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/viewReservationsByPartnerIdResponse" message="tns:viewReservationsByPartnerIdResponse"/>
 </operation>
-<operation name="searchRoom">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoomRequest" message="tns:searchRoom"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoomResponse" message="tns:searchRoomResponse"/>
-<fault message="tns:RoomTypeNotFoundException" name="RoomTypeNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoom/Fault/RoomTypeNotFoundException"/>
-<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoom/Fault/InputDataValidationException"/>
-</operation>
-<operation name="reserveNewReservation">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservationRequest" message="tns:reserveNewReservation"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservationResponse" message="tns:reserveNewReservationResponse"/>
-<fault message="tns:RoomTypeUnavailableException" name="RoomTypeUnavailableException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/RoomTypeUnavailableException"/>
-<fault message="tns:InvalidRoomCountException" name="InvalidRoomCountException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/InvalidRoomCountException"/>
-<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/InputDataValidationException"/>
-<fault message="tns:UnknownPersistenceException" name="UnknownPersistenceException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/UnknownPersistenceException"/>
-</operation>
 <operation name="retrieveGuestByGuestId">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveGuestByGuestIdRequest" message="tns:retrieveGuestByGuestId"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveGuestByGuestIdResponse" message="tns:retrieveGuestByGuestIdResponse"/>
@@ -92,6 +84,24 @@
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/doLoginRequest" message="tns:doLogin"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/doLoginResponse" message="tns:doLoginResponse"/>
 <fault message="tns:InvalidLoginCredentialException" name="InvalidLoginCredentialException" wsam:Action="http://ws.session.ejb/PartnerWebService/doLogin/Fault/InvalidLoginCredentialException"/>
+</operation>
+<operation name="searchRoom">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoomRequest" message="tns:searchRoom"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoomResponse" message="tns:searchRoomResponse"/>
+<fault message="tns:RoomTypeNotFoundException" name="RoomTypeNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoom/Fault/RoomTypeNotFoundException"/>
+<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/searchRoom/Fault/InputDataValidationException"/>
+</operation>
+<operation name="calculatePre">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/calculatePreRequest" message="tns:calculatePre"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/calculatePreResponse" message="tns:calculatePreResponse"/>
+</operation>
+<operation name="reserveNewReservation">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservationRequest" message="tns:reserveNewReservation"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservationResponse" message="tns:reserveNewReservationResponse"/>
+<fault message="tns:RoomTypeUnavailableException" name="RoomTypeUnavailableException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/RoomTypeUnavailableException"/>
+<fault message="tns:InvalidRoomCountException" name="InvalidRoomCountException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/InvalidRoomCountException"/>
+<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/InputDataValidationException"/>
+<fault message="tns:UnknownPersistenceException" name="UnknownPersistenceException" wsam:Action="http://ws.session.ejb/PartnerWebService/reserveNewReservation/Fault/UnknownPersistenceException"/>
 </operation>
 <operation name="retrievePartnerReservationsByReservationId">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePartnerReservationsByReservationIdRequest" message="tns:retrievePartnerReservationsByReservationId"/>
@@ -109,42 +119,6 @@
 <output>
 <soap:body use="literal"/>
 </output>
-</operation>
-<operation name="searchRoom">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-<fault name="RoomTypeNotFoundException">
-<soap:fault name="RoomTypeNotFoundException" use="literal"/>
-</fault>
-<fault name="InputDataValidationException">
-<soap:fault name="InputDataValidationException" use="literal"/>
-</fault>
-</operation>
-<operation name="reserveNewReservation">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-<fault name="RoomTypeUnavailableException">
-<soap:fault name="RoomTypeUnavailableException" use="literal"/>
-</fault>
-<fault name="InvalidRoomCountException">
-<soap:fault name="InvalidRoomCountException" use="literal"/>
-</fault>
-<fault name="InputDataValidationException">
-<soap:fault name="InputDataValidationException" use="literal"/>
-</fault>
-<fault name="UnknownPersistenceException">
-<soap:fault name="UnknownPersistenceException" use="literal"/>
-</fault>
 </operation>
 <operation name="retrieveGuestByGuestId">
 <soap:operation soapAction=""/>
@@ -168,6 +142,51 @@
 </output>
 <fault name="InvalidLoginCredentialException">
 <soap:fault name="InvalidLoginCredentialException" use="literal"/>
+</fault>
+</operation>
+<operation name="searchRoom">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="RoomTypeNotFoundException">
+<soap:fault name="RoomTypeNotFoundException" use="literal"/>
+</fault>
+<fault name="InputDataValidationException">
+<soap:fault name="InputDataValidationException" use="literal"/>
+</fault>
+</operation>
+<operation name="calculatePre">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="reserveNewReservation">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="RoomTypeUnavailableException">
+<soap:fault name="RoomTypeUnavailableException" use="literal"/>
+</fault>
+<fault name="InvalidRoomCountException">
+<soap:fault name="InvalidRoomCountException" use="literal"/>
+</fault>
+<fault name="InputDataValidationException">
+<soap:fault name="InputDataValidationException" use="literal"/>
+</fault>
+<fault name="UnknownPersistenceException">
+<soap:fault name="UnknownPersistenceException" use="literal"/>
 </fault>
 </operation>
 <operation name="retrievePartnerReservationsByReservationId">
